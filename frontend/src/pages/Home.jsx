@@ -192,11 +192,10 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -204,19 +203,17 @@ const Home = () => {
             className="text-center"
           >
             <div className="flex justify-center mb-8">
-              <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm">
-                <Github className="w-16 h-16 text-white" />
+              <div className="p-4 bg-blue-100 rounded-full">
+                <Github className="w-16 h-16 text-blue-600" />
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               GitHub Repository
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                Analyzer
-              </span>
+              <span className="block text-blue-600">Analyzer</span>
             </h1>
 
-            <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
               Get comprehensive insights into any GitHub repository. Analyze
               code quality, security, contributors, and much more with our
               powerful analysis tools.
@@ -227,11 +224,11 @@ const Home = () => {
               <div className="flex items-center justify-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   {AuthAPI.hasToken() ? (
-                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <CheckCircle className="w-5 h-5 text-green-600" />
                   ) : (
-                    <AlertCircle className="w-5 h-5 text-yellow-400" />
+                    <AlertCircle className="w-5 h-5 text-yellow-600" />
                   )}
-                  <span className="text-gray-300 text-sm">
+                  <span className="text-gray-600 text-sm">
                     {AuthAPI.hasToken()
                       ? "GitHub API Connected"
                       : "Limited API Access"}
@@ -240,7 +237,7 @@ const Home = () => {
 
                 <button
                   onClick={() => setShowTokenModal(true)}
-                  className="text-purple-400 hover:text-purple-300 transition-colors text-sm flex items-center gap-2"
+                  className="text-blue-600 hover:text-blue-700 transition-colors text-sm flex items-center gap-2 font-medium"
                 >
                   <Settings className="w-4 h-4" />
                   Configure Token
@@ -248,11 +245,11 @@ const Home = () => {
               </div>
 
               {rateLimit && (
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-gray-500">
                   API Rate Limit: {rateLimit.rate.remaining}/
                   {rateLimit.rate.limit} remaining
                   {rateLimit.rate.remaining < 10 && (
-                    <span className="text-yellow-400 ml-2">
+                    <span className="text-yellow-600 ml-2 font-medium">
                       ⚠️ Rate limit low
                     </span>
                   )}
@@ -269,14 +266,14 @@ const Home = () => {
                   onChange={(e) => setRepoUrl(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Enter GitHub repository URL (e.g., https://github.com/facebook/react)"
-                  className="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-6 py-4 bg-white border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
                 />
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleAnalyze}
                   disabled={loading}
-                  className="absolute right-2 top-2 bottom-2 px-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="absolute right-2 top-2 bottom-2 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
                 >
                   {loading ? (
                     <>
@@ -296,7 +293,7 @@ const Home = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-300"
+                  className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
                 >
                   {error}
                 </motion.div>
@@ -308,117 +305,119 @@ const Home = () => {
 
       {/* Results Section */}
       {results && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20"
-        >
-          {/* Repository Card */}
-          <div className="mb-12">
-            <RepoCard repository={results.repository} />
-          </div>
+        <div className="bg-gray-50 py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          >
+            {/* Repository Card */}
+            <div className="mb-12">
+              <RepoCard repository={results.repository} />
+            </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {calculateStats(results).map((stat, index) => (
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {calculateStats(results).map((stat, index) => (
+                <motion.div
+                  key={stat.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                >
+                  <StatsCard {...stat} />
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
               <motion.div
-                key={stat.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
               >
-                <StatsCard {...stat} />
+                <LanguageChart data={formatLanguageData(results.languages)} />
               </motion.div>
-            ))}
-          </div>
 
-          {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <ActivityChart
+                  data={formatActivityData(results.commitActivity)}
+                />
+              </motion.div>
+            </div>
+
+            {/* Additional Info */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
             >
-              <LanguageChart data={formatLanguageData(results.languages)} />
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Quick Stats
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {results.commits?.length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Recent Commits</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {Object.keys(results.languages).length}
+                  </div>
+                  <div className="text-sm text-gray-600">Languages</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {results.releases?.length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Releases</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {results.qualityMetrics?.linesOfCode?.toLocaleString() ||
+                      "N/A"}
+                  </div>
+                  <div className="text-sm text-gray-600">Lines of Code</div>
+                </div>
+              </div>
             </motion.div>
 
+            {/* Navigation Hint */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="mt-12 text-center"
             >
-              <ActivityChart
-                data={formatActivityData(results.commitActivity)}
-              />
+              <p className="text-gray-600 mb-4">
+                Explore more detailed analysis in the navigation sections above
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                  Dashboard
+                </span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                  Contributors
+                </span>
+                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                  Codebase
+                </span>
+                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                  Security
+                </span>
+              </div>
             </motion.div>
-          </div>
-
-          {/* Additional Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6"
-          >
-            <h3 className="text-xl font-semibold text-white mb-4">
-              Quick Stats
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-purple-400">
-                  {results.commits?.length || 0}
-                </div>
-                <div className="text-sm text-gray-400">Recent Commits</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-blue-400">
-                  {Object.keys(results.languages).length}
-                </div>
-                <div className="text-sm text-gray-400">Languages</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-green-400">
-                  {results.releases?.length || 0}
-                </div>
-                <div className="text-sm text-gray-400">Releases</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-orange-400">
-                  {results.qualityMetrics?.linesOfCode?.toLocaleString() ||
-                    "N/A"}
-                </div>
-                <div className="text-sm text-gray-400">Lines of Code</div>
-              </div>
-            </div>
           </motion.div>
-
-          {/* Navigation Hint */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="mt-12 text-center"
-          >
-            <p className="text-gray-400 mb-4">
-              Explore more detailed analysis in the navigation sections above
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <span className="px-3 py-1 bg-purple-600/20 text-purple-300 rounded-full text-sm">
-                Dashboard
-              </span>
-              <span className="px-3 py-1 bg-blue-600/20 text-blue-300 rounded-full text-sm">
-                Contributors
-              </span>
-              <span className="px-3 py-1 bg-green-600/20 text-green-300 rounded-full text-sm">
-                Codebase
-              </span>
-              <span className="px-3 py-1 bg-red-600/20 text-red-300 rounded-full text-sm">
-                Security
-              </span>
-            </div>
-          </motion.div>
-        </motion.div>
+        </div>
       )}
 
       {/* GitHub Token Modal */}

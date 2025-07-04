@@ -31,10 +31,10 @@ const LanguageChart = ({ data }) => {
     if (active && payload && payload.length) {
       const data = payload[0];
       return (
-        <div className="bg-slate-800 p-3 rounded-lg shadow-lg border border-white/20 backdrop-blur-sm">
-          <p className="font-semibold text-white">{data.payload.name}</p>
-          <p className="text-sm text-gray-300">{data.value}%</p>
-          <p className="text-xs text-gray-400">
+        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+          <p className="font-semibold text-gray-900">{data.payload.name}</p>
+          <p className="text-sm text-gray-600">{data.value}%</p>
+          <p className="text-xs text-gray-500">
             {data.payload.bytes?.toLocaleString()} bytes
           </p>
         </div>
@@ -47,9 +47,9 @@ const LanguageChart = ({ data }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-xl"
+      className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg"
     >
-      <h3 className="text-xl font-bold text-white mb-6">
+      <h3 className="text-xl font-bold text-gray-900 mb-6">
         Language Distribution
       </h3>
 
@@ -83,7 +83,7 @@ const LanguageChart = ({ data }) => {
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: getColor(entry.name) }}
             ></div>
-            <span className="text-sm text-gray-300">
+            <span className="text-sm text-gray-600">
               {entry.name} ({entry.value}%)
             </span>
           </div>
