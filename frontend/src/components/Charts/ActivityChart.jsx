@@ -13,9 +13,9 @@ const ActivityChart = ({ data }) => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-900">{label}</p>
-          <p className="text-sm text-blue-600">{payload[0].value} commits</p>
+        <div className="bg-slate-800 p-3 rounded-lg shadow-lg border border-white/20 backdrop-blur-sm">
+          <p className="font-semibold text-white">{label}</p>
+          <p className="text-sm text-blue-400">{payload[0].value} commits</p>
         </div>
       );
     }
@@ -26,9 +26,9 @@ const ActivityChart = ({ data }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
+      className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-xl"
     >
-      <h3 className="text-xl font-bold text-gray-900 mb-6">Weekly Activity</h3>
+      <h3 className="text-xl font-bold text-white mb-6">Commit Activity</h3>
 
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">

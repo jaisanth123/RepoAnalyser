@@ -9,11 +9,8 @@ import {
 import { motion } from "framer-motion";
 
 const LanguageChart = ({ data }) => {
-  const chartData = Object.entries(data).map(([language, percentage]) => ({
-    name: language,
-    value: percentage,
-    count: `${percentage.toFixed(1)}%`,
-  }));
+  // data is already an array of {name, value, bytes} objects
+  const chartData = data || [];
 
   const COLORS = {
     JavaScript: "#f7df1e",
@@ -34,9 +31,12 @@ const LanguageChart = ({ data }) => {
     if (active && payload && payload.length) {
       const data = payload[0];
       return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-900">{data.name}</p>
-          <p className="text-sm text-gray-600">{data.value.toFixed(1)}%</p>
+        <div className="bg-slate-800 p-3 rounded-lg shadow-lg border border-white/20 backdrop-blur-sm">
+          <p className="font-semibold text-white">{data.payload.name}</p>
+          <p className="text-sm text-gray-300">{data.value}%</p>
+          <p className="text-xs text-gray-400">
+            {data.payload.bytes?.toLocaleString()} bytes
+          </p>
         </div>
       );
     }
@@ -47,9 +47,9 @@ const LanguageChart = ({ data }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
+      className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-xl"
     >
-      <h3 className="text-xl font-bold text-gray-900 mb-6">
+      <h3 className="text-xl font-bold text-white mb-6">
         Language Distribution
       </h3>
 
@@ -63,7 +63,7 @@ const LanguageChart = ({ data }) => {
               outerRadius={100}
               fill="#8884d8"
               dataKey="value"
-              label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
+              label={({ name, value }) => `${name}: ${value}%`}
               labelLine={false}
             >
               {chartData.map((entry, index) => (
@@ -83,8 +83,8 @@ const LanguageChart = ({ data }) => {
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: getColor(entry.name) }}
             ></div>
-            <span className="text-sm text-gray-600">
-              {entry.name} ({entry.value.toFixed(1)}%)
+            <span className="text-sm text-gray-300">
+              {entry.name} ({entry.value}%)
             </span>
           </div>
         ))}
