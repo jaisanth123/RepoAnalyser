@@ -308,7 +308,13 @@ const Home = () => {
           >
             {/* Repository Card */}
             <div className="mb-12">
-              <RepoCard repository={results.repository} />
+              <RepoCard
+                repository={results.repository}
+                contributors={results.contributors}
+                commits={results.commits}
+                languages={results.languages}
+                qualityMetrics={results.qualityMetrics}
+              />
             </div>
 
             {/* Stats Grid */}
