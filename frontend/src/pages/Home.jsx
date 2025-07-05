@@ -213,12 +213,6 @@ const Home = () => {
               <span className="block text-blue-600">Analyzer</span>
             </h1>
 
-            <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
-              Get comprehensive insights into any GitHub repository. Analyze
-              code quality, security, contributors, and much more with our
-              powerful analysis tools.
-            </p>
-
             {/* API Status Section */}
             <div className="mb-8">
               <div className="flex items-center justify-center gap-4 mb-4">
@@ -265,7 +259,7 @@ const Home = () => {
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Enter GitHub repository URL (e.g., https://github.com/facebook/react)"
+                  placeholder="Enter GitHub repository URL "
                   className="w-full px-6 py-4 bg-white border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
                 />
                 <motion.button
