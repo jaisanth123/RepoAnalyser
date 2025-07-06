@@ -162,6 +162,19 @@ const Home = () => {
     try {
       await checkRateLimit();
       const data = await analyzeRepository(repoUrl);
+
+      // Debug logging to verify data structure
+      console.log("Repository Analysis Results:", {
+        repository: data.repository?.full_name,
+        contributorsCount: data.contributors?.length,
+        commitsCount: data.commits?.length,
+        issuesCount: data.issues?.length,
+        pullRequestsCount: data.pullRequests?.length,
+        releasesCount: data.releases?.length,
+        branchesCount: data.branches?.length,
+        languagesCount: Object.keys(data.languages || {}).length,
+      });
+
       setResults(data);
     } catch (error) {
       console.error("Analysis failed:", error);
@@ -315,6 +328,10 @@ const Home = () => {
                 commits={results.commits}
                 languages={results.languages}
                 qualityMetrics={results.qualityMetrics}
+                issues={results.issues}
+                pullRequests={results.pullRequests}
+                releases={results.releases}
+                branches={results.branches || []}
               />
             </div>
 

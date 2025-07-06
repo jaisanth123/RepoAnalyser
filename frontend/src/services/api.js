@@ -151,6 +151,19 @@ export const GitHubAPI = {
     }
   },
 
+  // Get repository branches
+  async getBranches(owner, repo) {
+    try {
+      const response = await githubApi.get(`/repos/${owner}/${repo}/branches`, {
+        params: { per_page: 100 },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+      throw error;
+    }
+  },
+
   // Get repository vulnerability alerts (requires special permissions)
   async getVulnerabilityAlerts(owner, repo) {
     try {
@@ -393,6 +406,7 @@ export const analyzeRepository = async (repoUrl) => {
       issues,
       pullRequests,
       releases,
+      branches,
     ] = await Promise.all([
       GitHubAPI.getRepository(owner, repo),
       GitHubAPI.getLanguages(owner, repo),
@@ -401,6 +415,7 @@ export const analyzeRepository = async (repoUrl) => {
       GitHubAPI.getIssues(owner, repo),
       GitHubAPI.getPullRequests(owner, repo),
       GitHubAPI.getReleases(owner, repo),
+      GitHubAPI.getBranches(owner, repo),
     ]);
 
     // Get additional analysis data
@@ -420,6 +435,7 @@ export const analyzeRepository = async (repoUrl) => {
       issues,
       pullRequests,
       releases,
+      branches,
       securityScore,
       vulnerabilities,
       qualityMetrics,
