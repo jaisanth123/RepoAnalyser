@@ -213,24 +213,71 @@ const LanguageChart = ({ data }) => {
         </div>
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Pie Chart */}
-        <div>
-          <h4 className="font-semibold text-gray-900 mb-4">Distribution</h4>
-          <div className="h-64">
+      {/* Language Composition Layout */}
+      <div className="grid grid-cols-5 gap-6 h-80 mb-6">
+        {/* Language Details - Left Side (3 columns) */}
+        <div className="col-span-3 overflow-y-auto pr-4">
+          <h4 className="font-semibold text-gray-900 mb-4">
+            Language Breakdown
+          </h4>
+          <div className="space-y-3">
+            {chartData.map((lang, index) => (
+              <motion.div
+                key={lang.name}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 shadow-sm"
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div
+                    className="w-4 h-4 rounded-full border border-gray-300"
+                    style={{ backgroundColor: getColor(lang.name) }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-gray-900 truncate">
+                      {lang.name}
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      {lang.bytes?.toLocaleString()} bytes
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right ml-3 flex-shrink-0">
+                  <div className="text-lg font-bold text-gray-900">
+                    {lang.value}%
+                  </div>
+                  <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
+                    <div
+                      className="h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${lang.value}%`,
+                        backgroundColor: getColor(lang.name),
+                      }}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Pie Chart - Right Side (2 columns) */}
+        <div className="col-span-2 flex flex-col items-center justify-center">
+          <h4 className="font-semibold text-gray-900 mb-4 text-center">
+            Language Distribution
+          </h4>
+          <div className="flex-1 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  outerRadius={80}
+                  outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
-                  label={({ name, value }) =>
-                    value > 5 ? `${name}: ${value}%` : ""
-                  }
+                  label={({ name, value }) => (value > 8 ? `${value}%` : "")}
                   labelLine={false}
                 >
                   {chartData.map((entry, index) => (
@@ -242,88 +289,10 @@ const LanguageChart = ({ data }) => {
             </ResponsiveContainer>
           </div>
         </div>
-
-        {/* Bar Chart */}
-        <div>
-          <h4 className="font-semibold text-gray-900 mb-4">
-            Language Breakdown
-          </h4>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData.slice(0, 6)}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: "#6b7280" }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: "#6b7280" }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getColor(entry.name)} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Language Details */}
-      <div className="space-y-3">
-        <h4 className="font-semibold text-gray-900">Language Details</h4>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          {chartData.slice(0, 8).map((lang, index) => (
-            <motion.div
-              key={lang.name}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: getColor(lang.name) }}
-                />
-                <div>
-                  <div className="font-medium text-gray-900">{lang.name}</div>
-                  <div className="text-xs text-gray-600">
-                    {lang.bytes?.toLocaleString()} bytes
-                  </div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="font-semibold text-gray-900">{lang.value}%</div>
-                <div className="w-16 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="h-2 rounded-full"
-                    style={{
-                      width: `${lang.value}%`,
-                      backgroundColor: getColor(lang.name),
-                    }}
-                  />
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </div>
 
       {/* Language Analysis */}
-      <div className="mt-6 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
+      {/* <div className="mt-6 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
         <h4 className="font-semibold text-indigo-900 mb-3 flex items-center gap-2">
           <Target className="w-4 h-4" />
           Language Analysis
@@ -349,7 +318,7 @@ const LanguageChart = ({ data }) => {
               : `Focused project primarily using ${insights.primaryLanguage?.name}, ensuring consistency and specialization.`}
           </div>
         </div>
-      </div>
+      </div> */}
     </motion.div>
   );
 };

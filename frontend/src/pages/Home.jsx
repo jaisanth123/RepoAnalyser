@@ -17,6 +17,7 @@ import {
   CheckCircle,
   Info,
   Settings,
+  User,
 } from "lucide-react";
 import RepoCard from "../components/Cards/RepoCard";
 import StatsCard from "../components/Cards/StatsCard";
@@ -333,14 +334,14 @@ const Home = () => {
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-              <motion.div
+              {/* <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
                 <LanguageChart data={formatLanguageData(results.languages)} />
-              </motion.div>
-
+              </motion.div> */}
+              {/*
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -349,10 +350,10 @@ const Home = () => {
                 <ActivityChart
                   data={formatActivityData(results.commitActivity)}
                 />
-              </motion.div>
+              </motion.div> */}
             </div>
 
-            {/* Additional Info */}
+            {/* Additional Info
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -389,7 +390,7 @@ const Home = () => {
                   <div className="text-sm text-gray-600">Lines of Code</div>
                 </div>
               </div>
-            </motion.div>
+            </motion.div> */}
 
             {/* Navigation Hint */}
             <motion.div
@@ -399,22 +400,17 @@ const Home = () => {
               className="mt-12 text-center"
             >
               <p className="text-gray-600 mb-4">
-                Explore more detailed analysis in the navigation sections above
+                Made by this{" "}
+                <a
+                  href="https://github.com/jaisanth123"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-gray-500 underline font-bold hover:text-gray-700 transition-colors"
+                >
+                  {/* <User className="w-4 h-4" /> */}
+                  guy
+                </a>
               </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                  Dashboard
-                </span>
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                  Contributors
-                </span>
-                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                  Codebase
-                </span>
-                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
-                  Security
-                </span>
-              </div>
             </motion.div>
           </motion.div>
         </div>

@@ -225,6 +225,12 @@ const CommitActivityHeatmapChart = ({ commits = [], repository }) => {
             Commit Activity Heatmap
           </h3>
         </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-gray-900">
+            {insights.totalCommits}
+          </div>
+          <div className="text-sm text-gray-600">Total Commits</div>
+        </div>
       </div>
 
       {/* Key Insights */}
@@ -424,7 +430,7 @@ const CommitActivityHeatmapChart = ({ commits = [], repository }) => {
       </div>
 
       {/* Insights Summary */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+      {/* <div className="mt-6 p-4 bg-gray-50 rounded-lg">
         <h4 className="font-semibold text-gray-900 mb-2">Activity Insights</h4>
         <div className="text-sm text-gray-700 space-y-1">
           <div>
@@ -464,7 +470,7 @@ const CommitActivityHeatmapChart = ({ commits = [], repository }) => {
             hours of the day
           </div>
         </div>
-      </div>
+      </div> */}
     </motion.div>
   );
 };
