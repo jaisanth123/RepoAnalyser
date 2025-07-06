@@ -20,9 +20,9 @@ const Header = () => {
 
   const navItems = [
     { path: "/", icon: Search, label: "Analyzer" },
-    { path: "/dashboard", icon: BarChart3, label: "Dashboard" },
-    { path: "/contributors", icon: Users, label: "Contributors" },
-    { path: "/codebase", icon: Code, label: "Codebase" },
+    // { path: "/dashboard", icon: BarChart3, label: "Dashboard" },
+    // { path: "/contributors", icon: Users, label: "Contributors" },
+    // { path: "/codebase", icon: Code, label: "Codebase" },
     { path: "/security", icon: Shield, label: "Security" },
   ];
 
