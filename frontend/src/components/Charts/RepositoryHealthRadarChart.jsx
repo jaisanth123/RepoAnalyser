@@ -51,8 +51,12 @@ const RepositoryHealthRadarChart = ({
       (repository.readme ? 15 : 0); // Assume readme exists if description exists
 
     // Quality Score (0-100)
-    const openIssues = issues.filter((issue) => issue.state === "open").length;
-    const closedIssues = issues.filter(
+    // Filter out pull requests from issues (GitHub API includes PRs in issues endpoint)
+    const actualIssues = issues.filter((issue) => !issue.pull_request);
+    const openIssues = actualIssues.filter(
+      (issue) => issue.state === "open"
+    ).length;
+    const closedIssues = actualIssues.filter(
       (issue) => issue.state === "closed"
     ).length;
     const issueResolutionRate =

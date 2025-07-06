@@ -107,13 +107,20 @@ export const GitHubAPI = {
     }
   },
 
-  // Get repository issues
+  // Get repository issues (excludes pull requests)
   async getIssues(owner, repo, state = "all") {
     try {
       const response = await githubApi.get(`/repos/${owner}/${repo}/issues`, {
-        params: { state, per_page: 100 },
+        params: {
+          state,
+          per_page: 100,
+          // GitHub API includes PRs in issues by default, but we filter them out in the component
+          // Adding this comment for clarity about the expected behavior
+        },
       });
-      return response.data;
+      // Filter out pull requests from issues (GitHub API includes PRs in issues endpoint)
+      const actualIssues = response.data.filter((issue) => !issue.pull_request);
+      return actualIssues;
     } catch (error) {
       console.error("Error fetching issues:", error);
       throw error;

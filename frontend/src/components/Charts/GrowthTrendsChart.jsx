@@ -447,7 +447,7 @@ const GrowthTrendsChart = ({
       </div>
 
       {/* Growth Insights */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+      {/* <div className="mt-6 p-4 bg-gray-50 rounded-lg">
         <h4 className="font-semibold text-gray-900 mb-2">Growth Insights</h4>
         <div className="text-sm text-gray-700 space-y-1">
           {repository.stargazers_count > 100 && (
@@ -491,7 +491,7 @@ const GrowthTrendsChart = ({
             months
           </div>
         </div>
-      </div>
+      </div> */}
     </motion.div>
   );
 };

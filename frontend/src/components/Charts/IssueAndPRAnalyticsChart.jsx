@@ -39,10 +39,22 @@ const IssueAndPRAnalyticsChart = ({
   pullRequests = [],
   repository,
 }) => {
+  // Debug logging to help troubleshoot data issues
+  console.log("IssueAndPRAnalyticsChart Debug:", {
+    issuesCount: issues.length,
+    pullRequestsCount: pullRequests.length,
+    issuesWithPullRequestProperty: issues.filter((issue) => issue.pull_request)
+      .length,
+    actualIssuesCount: issues.filter((issue) => !issue.pull_request).length,
+    repositoryName: repository?.full_name || "Unknown",
+  });
   // Process issues and PR data for analytics
   const processData = () => {
     const now = new Date();
     const thirtyDaysAgo = subDays(now, 30);
+
+    // Filter out pull requests from issues (GitHub API includes PRs in issues endpoint)
+    const actualIssues = issues.filter((issue) => !issue.pull_request);
 
     // Create timeline for last 30 days
     const days = eachDayOfInterval({ start: thirtyDaysAgo, end: now });
@@ -51,11 +63,11 @@ const IssueAndPRAnalyticsChart = ({
       const dayStr = format(day, "yyyy-MM-dd");
 
       // Issues opened/closed on this day
-      const issuesOpened = issues.filter(
+      const issuesOpened = actualIssues.filter(
         (issue) => format(parseISO(issue.created_at), "yyyy-MM-dd") === dayStr
       ).length;
 
-      const issuesClosed = issues.filter(
+      const issuesClosed = actualIssues.filter(
         (issue) =>
           issue.closed_at &&
           format(parseISO(issue.closed_at), "yyyy-MM-dd") === dayStr
@@ -88,8 +100,13 @@ const IssueAndPRAnalyticsChart = ({
   };
 
   const calculateMetrics = () => {
-    const openIssues = issues.filter((issue) => issue.state === "open").length;
-    const closedIssues = issues.filter(
+    // Filter out pull requests from issues (GitHub API includes PRs in issues endpoint)
+    const actualIssues = issues.filter((issue) => !issue.pull_request);
+
+    const openIssues = actualIssues.filter(
+      (issue) => issue.state === "open"
+    ).length;
+    const closedIssues = actualIssues.filter(
       (issue) => issue.state === "closed"
     ).length;
     const totalIssues = openIssues + closedIssues;
@@ -121,12 +138,15 @@ const IssueAndPRAnalyticsChart = ({
       return Math.round(totalDays / closedItems.length);
     };
 
-    const avgIssueResolutionTime = getAvgResolutionTime(issues, "closed_at");
+    const avgIssueResolutionTime = getAvgResolutionTime(
+      actualIssues,
+      "closed_at"
+    );
     const avgPRMergeTime = getAvgResolutionTime(pullRequests, "merged_at");
 
     // Recent activity (last 7 days)
     const sevenDaysAgo = subDays(new Date(), 7);
-    const recentIssues = issues.filter(
+    const recentIssues = actualIssues.filter(
       (issue) => parseISO(issue.created_at) >= sevenDaysAgo
     ).length;
     const recentPRs = pullRequests.filter(
