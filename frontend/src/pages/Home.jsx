@@ -192,9 +192,9 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen ">
       {/* Hero Section */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -299,7 +299,7 @@ const Home = () => {
 
       {/* Results Section */}
       {results && (
-        <div className="bg-gray-50 py-16">
+        <div className=" py-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

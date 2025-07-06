@@ -55,6 +55,16 @@ import AdditionalInfoCard from "./AdditionalInfoCard";
 import TopicsSection from "./TopicsSection";
 import ProfessionalFooter from "./ProfessionalFooter";
 
+// Import all the advanced charts
+import CommitTimelineChart from "../Charts/CommitTimelineChart";
+import RepositoryHealthRadarChart from "../Charts/RepositoryHealthRadarChart";
+import ContributorDistributionChart from "../Charts/ContributorDistributionChart";
+import IssueAndPRAnalyticsChart from "../Charts/IssueAndPRAnalyticsChart";
+import CommitActivityHeatmapChart from "../Charts/CommitActivityHeatmapChart";
+import GrowthTrendsChart from "../Charts/GrowthTrendsChart";
+import ActivityChart from "../Charts/ActivityChart";
+import LanguageChart from "../Charts/LanguageChart";
+
 const RepoCard = ({
   repository,
   contributors = [],
@@ -600,6 +610,77 @@ const RepoCard = ({
 
         {/* Topics Section */}
         <TopicsSection repository={repository} />
+
+        {/* Advanced Analytics Charts Section */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-6">
+            <BarChart3 className="w-6 h-6 text-indigo-600" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              Advanced Analytics & Insights
+            </h2>
+          </div>
+
+          {/* Primary Analytics Charts */}
+          <div className="grid grid-cols-1 gap-6 mb-6">
+            {/* Repository Health Radar */}
+            <RepositoryHealthRadarChart
+              repository={repository}
+              contributors={contributors}
+              commits={commits}
+              issues={issues}
+              pullRequests={pullRequests}
+              releases={releases}
+            />
+
+            {/* Growth Trends */}
+            <GrowthTrendsChart
+              repository={repository}
+              contributors={contributors}
+              commits={commits}
+              releases={releases}
+            />
+          </div>
+
+          {/* Commit Timeline Chart */}
+          <div className="grid grid-cols-1 gap-6 mb-6">
+            <CommitTimelineChart commits={commits} repository={repository} />
+          </div>
+
+          {/* Issue & PR Analytics Chart */}
+          <div className="grid grid-cols-1 gap-6 mb-6">
+            <IssueAndPRAnalyticsChart
+              issues={issues}
+              pullRequests={pullRequests}
+              repository={repository}
+            />
+          </div>
+
+          {/* Team & Development Patterns */}
+          <div className="grid grid-cols-1 gap-6 mb-6">
+            {/* Contributor Distribution */}
+            <ContributorDistributionChart
+              contributors={contributors}
+              repository={repository}
+            />
+
+            {/* Commit Activity Heatmap */}
+            <CommitActivityHeatmapChart
+              commits={commits}
+              repository={repository}
+            />
+          </div>
+
+          {/* Enhanced Language Chart */}
+          <div className="mb-6">
+            <LanguageChart
+              data={languageDiversity.languageBreakdown.map((lang) => ({
+                name: lang.name,
+                value: lang.percentage,
+                bytes: lang.bytes,
+              }))}
+            />
+          </div>
+        </div>
 
         {/* Professional Footer */}
         <ProfessionalFooter repository={repository} />
