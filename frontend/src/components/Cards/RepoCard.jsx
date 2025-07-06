@@ -537,7 +537,7 @@ const RepoCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden"
+      className="w-full max-w-none bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden"
     >
       {/* Premium Header with Gradient */}
       <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 p-6 text-white">
@@ -935,7 +935,7 @@ const RepoCard = ({
         )}
 
         {/* Advanced Development Insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Commit Analysis */}
           {commitPatterns && (
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
@@ -1011,330 +1011,208 @@ const RepoCard = ({
             </div>
           )}
 
-          {/* Enhanced Repository Features & Quality */}
+          {/* Repository Core Features */}
           <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-200">
-            <h3 className="text-lg font-bold text-indigo-900 mb-6 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-600" />
-              Repository Features & Analysis
+            <h3 className="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-indigo-600" />
+              Core Features
             </h3>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Core Features Grid */}
-              <div>
-                <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4" />
-                  Core Features
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Bug className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">Issues</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-3 h-3 rounded-full ${
-                          repository.has_issues ? "bg-green-500" : "bg-gray-300"
-                        }`}
-                      />
-                      <span className="text-xs text-indigo-700">
-                        {repository.has_issues
-                          ? `${repository.open_issues_count} open`
-                          : "Disabled"}
-                      </span>
-                    </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Bug className="w-4 h-4 text-indigo-600" />
+                    <span className="text-sm text-indigo-800">Issues</span>
                   </div>
-
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">Wiki</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-3 h-3 rounded-full ${
-                          repository.has_wiki ? "bg-green-500" : "bg-gray-300"
-                        }`}
-                      />
-                      <span className="text-xs text-indigo-700">
-                        {repository.has_wiki ? "Available" : "Disabled"}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        repository.has_issues ? "bg-green-500" : "bg-gray-300"
+                      }`}
+                    />
+                    <span className="text-xs text-indigo-700">
+                      {repository.has_issues
+                        ? `${repository.open_issues_count} open`
+                        : "Disabled"}
+                    </span>
                   </div>
+                </div>
 
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">Pages</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-3 h-3 rounded-full ${
-                          repository.has_pages ? "bg-green-500" : "bg-gray-300"
-                        }`}
-                      />
-                      <span className="text-xs text-indigo-700">
-                        {repository.has_pages ? "Deployed" : "Disabled"}
-                      </span>
-                    </div>
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-indigo-600" />
+                    <span className="text-sm text-indigo-800">Wiki</span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        repository.has_wiki ? "bg-green-500" : "bg-gray-300"
+                      }`}
+                    />
+                    <span className="text-xs text-indigo-700">
+                      {repository.has_wiki ? "Available" : "Disabled"}
+                    </span>
+                  </div>
+                </div>
 
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">Projects</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-3 h-3 rounded-full ${
-                          repository.has_projects
-                            ? "bg-green-500"
-                            : "bg-gray-300"
-                        }`}
-                      />
-                      <span className="text-xs text-indigo-700">
-                        {repository.has_projects ? "Active" : "Disabled"}
-                      </span>
-                    </div>
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-indigo-600" />
+                    <span className="text-sm text-indigo-800">Pages</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        repository.has_pages ? "bg-green-500" : "bg-gray-300"
+                      }`}
+                    />
+                    <span className="text-xs text-indigo-700">
+                      {repository.has_pages ? "Deployed" : "Disabled"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-indigo-600" />
+                    <span className="text-sm text-indigo-800">Projects</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        repository.has_projects ? "bg-green-500" : "bg-gray-300"
+                      }`}
+                    />
+                    <span className="text-xs text-indigo-700">
+                      {repository.has_projects ? "Active" : "Disabled"}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Repository Information */}
-              <div>
-                <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  Repository Information
-                </h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">License</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
-                        {repository.license
-                          ? formatLicense(repository.license)
-                          : "No License"}
-                      </span>
-                    </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-indigo-600" />
+                    <span className="text-sm text-indigo-800">License</span>
                   </div>
+                  <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
+                    {repository.license
+                      ? formatLicense(repository.license)
+                      : "No License"}
+                  </span>
+                </div>
 
-                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <GitBranch className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">
-                        Default Branch
-                      </span>
-                    </div>
-                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
-                      {repository.default_branch || "main"}
-                    </span>
+                <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-indigo-600" />
+                    <span className="text-sm text-indigo-800">Visibility</span>
                   </div>
-
-                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Download className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">
-                        Repository Size
-                      </span>
-                    </div>
-                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
-                      {(repository.size / 1024).toFixed(1)} MB
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Eye className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">
-                        Visibility
-                      </span>
-                    </div>
-                    <span
-                      className={`text-xs font-medium px-2 py-1 rounded ${
-                        repository.private
-                          ? "text-red-900 bg-red-100"
-                          : "text-green-900 bg-green-100"
-                      }`}
-                    >
-                      {repository.private ? "Private" : "Public"}
-                    </span>
-                  </div>
+                  <span
+                    className={`text-xs font-medium px-2 py-1 rounded ${
+                      repository.private
+                        ? "text-red-900 bg-red-100"
+                        : "text-green-900 bg-green-100"
+                    }`}
+                  >
+                    {repository.private ? "Private" : "Public"}
+                  </span>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Development Workflow */}
-              <div>
-                <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                  <GitMerge className="w-4 h-4" />
-                  Development Workflow
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <GitPullRequest className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">
-                        Pull Requests
-                      </span>
-                    </div>
-                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
-                      {projectInsights.pullRequests.total}
+          {/* Development Workflow & Quality */}
+          <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-6 border border-orange-200">
+            <h3 className="text-lg font-bold text-orange-900 mb-4 flex items-center gap-2">
+              <GitMerge className="w-5 h-5 text-orange-600" />
+              Development Workflow
+            </h3>
+
+            <div className="space-y-4">
+              {/* Development Stats */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <GitPullRequest className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm text-orange-800">
+                      Pull Requests
                     </span>
                   </div>
-
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <GitCommit className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">
-                        Total Commits
-                      </span>
-                      {isLoadingCommits && (
-                        <div className="w-3 h-3 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                      )}
-                    </div>
-                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
-                      {commitPatterns?.total?.toLocaleString() || 0}
-                      {hasMoreCommits && (
-                        <span className="text-indigo-600">+</span>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <GitBranch className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">Branches</span>
-                    </div>
-                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
-                      {projectInsights.branches}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Tag className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">Releases</span>
-                    </div>
-                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
-                      {projectInsights.releases}
-                    </span>
-                  </div>
+                  <span className="text-xs font-medium text-orange-900 bg-orange-100 px-2 py-1 rounded">
+                    {projectInsights.pullRequests.total}
+                  </span>
                 </div>
-              </div>
 
-              {/* Community & Collaboration */}
-              <div>
-                <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Community & Collaboration
-                </h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <UserPlus className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">
-                        Allow Forking
-                      </span>
-                    </div>
-                    <span
-                      className={`text-xs font-medium px-2 py-1 rounded ${
-                        repository.allow_forking
-                          ? "text-green-900 bg-green-100"
-                          : "text-red-900 bg-red-100"
-                      }`}
-                    >
-                      {repository.allow_forking ? "Enabled" : "Disabled"}
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <GitCommit className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm text-orange-800">
+                      Total Commits
                     </span>
-                  </div>
-
-                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">
-                        Discussions
-                      </span>
-                    </div>
-                    <span
-                      className={`text-xs font-medium px-2 py-1 rounded ${
-                        repository.has_discussions
-                          ? "text-green-900 bg-green-100"
-                          : "text-gray-900 bg-gray-100"
-                      }`}
-                    >
-                      {repository.has_discussions ? "Active" : "Disabled"}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-indigo-600" />
-                      <span className="text-sm text-indigo-800">
-                        Stargazers
-                      </span>
-                    </div>
-                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
-                      {repository.stargazers_count.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Latest Release Information */}
-              {projectInsights.latestRelease && (
-                <div>
-                  <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                    <Award className="w-4 h-4" />
-                    Latest Release
-                  </h4>
-                  <div className="p-4 bg-white/60 rounded-lg border border-indigo-200">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <div className="font-semibold text-indigo-900 text-sm">
-                          {projectInsights.latestRelease.name ||
-                            projectInsights.latestRelease.tag_name}
-                        </div>
-                        <div className="text-xs text-indigo-600">
-                          Released{" "}
-                          {formatRelativeTime(
-                            projectInsights.latestRelease.published_at
-                          )}
-                        </div>
-                      </div>
-                      <motion.a
-                        href={projectInsights.latestRelease.html_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        whileHover={{ scale: 1.05 }}
-                        className="p-1 bg-indigo-100 hover:bg-indigo-200 rounded transition-colors"
-                      >
-                        <ExternalLink className="w-3 h-3 text-indigo-600" />
-                      </motion.a>
-                    </div>
-                    {projectInsights.latestRelease.body && (
-                      <div className="text-xs text-indigo-700 mt-2 line-clamp-2">
-                        {projectInsights.latestRelease.body.substring(0, 100)}
-                        ...
-                      </div>
+                    {isLoadingCommits && (
+                      <div className="w-3 h-3 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
                     )}
                   </div>
+                  <span className="text-xs font-medium text-orange-900 bg-orange-100 px-2 py-1 rounded">
+                    {commitPatterns?.total?.toLocaleString() || 0}
+                    {hasMoreCommits && (
+                      <span className="text-orange-600">+</span>
+                    )}
+                  </span>
                 </div>
-              )}
+
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <GitBranch className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm text-orange-800">Branches</span>
+                  </div>
+                  <span className="text-xs font-medium text-orange-900 bg-orange-100 px-2 py-1 rounded">
+                    {projectInsights.branches}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm text-orange-800">Releases</span>
+                  </div>
+                  <span className="text-xs font-medium text-orange-900 bg-orange-100 px-2 py-1 rounded">
+                    {projectInsights.releases}
+                  </span>
+                </div>
+              </div>
 
               {/* Repository Quality Score */}
-              <div>
-                <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  Repository Quality Score
-                </h4>
-                <div className="p-4 bg-white/60 rounded-lg">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-indigo-800">
-                      Overall Quality
-                    </span>
-                    <span className="text-sm font-bold text-indigo-900">
-                      {Math.round(
+              <div className="bg-white/60 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-orange-800 font-medium">
+                    Repository Quality
+                  </span>
+                  <span className="text-sm font-bold text-orange-900">
+                    {Math.round(
+                      (((repository.has_issues ? 1 : 0) +
+                        (repository.has_wiki ? 1 : 0) +
+                        (repository.has_pages ? 1 : 0) +
+                        (repository.license ? 1 : 0) +
+                        (repository.description ? 1 : 0) +
+                        (repository.topics && repository.topics.length > 0
+                          ? 1
+                          : 0)) /
+                        6) *
+                        100
+                    )}
+                    %
+                  </span>
+                </div>
+                <div className="w-full bg-orange-200 rounded-full h-2">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500"
+                    style={{
+                      width: `${Math.round(
                         (((repository.has_issues ? 1 : 0) +
                           (repository.has_wiki ? 1 : 0) +
                           (repository.has_pages ? 1 : 0) +
@@ -1345,31 +1223,230 @@ const RepoCard = ({
                             : 0)) /
                           6) *
                           100
-                      )}
-                      %
-                    </span>
-                  </div>
-                  <div className="w-full bg-indigo-200 rounded-full h-2">
-                    <div
-                      className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
-                      style={{
-                        width: `${Math.round(
-                          (((repository.has_issues ? 1 : 0) +
-                            (repository.has_wiki ? 1 : 0) +
-                            (repository.has_pages ? 1 : 0) +
-                            (repository.license ? 1 : 0) +
-                            (repository.description ? 1 : 0) +
-                            (repository.topics && repository.topics.length > 0
-                              ? 1
-                              : 0)) /
-                            6) *
-                            100
-                        )}%`,
-                      }}
-                    />
-                  </div>
+                      )}%`,
+                    }}
+                  />
                 </div>
               </div>
+
+              {/* Community Info */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm text-orange-800">
+                      Allow Forking
+                    </span>
+                  </div>
+                  <span
+                    className={`text-xs font-medium px-2 py-1 rounded ${
+                      repository.allow_forking
+                        ? "text-green-900 bg-green-100"
+                        : "text-red-900 bg-red-100"
+                    }`}
+                  >
+                    {repository.allow_forking ? "Enabled" : "Disabled"}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Download className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm text-orange-800">Size</span>
+                  </div>
+                  <span className="text-xs font-medium text-orange-900 bg-orange-100 px-2 py-1 rounded">
+                    {(repository.size / 1024).toFixed(1)} MB
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Latest Release Information */}
+        {projectInsights.latestRelease && (
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200 mb-6">
+            <h3 className="text-lg font-bold text-purple-900 mb-4 flex items-center gap-2">
+              <Award className="w-5 h-5 text-purple-600" />
+              Latest Release
+            </h3>
+            <div className="p-4 bg-white/60 rounded-lg border border-purple-200">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <div className="font-semibold text-purple-900 text-sm">
+                    {projectInsights.latestRelease.name ||
+                      projectInsights.latestRelease.tag_name}
+                  </div>
+                  <div className="text-xs text-purple-600">
+                    Released{" "}
+                    {formatRelativeTime(
+                      projectInsights.latestRelease.published_at
+                    )}
+                  </div>
+                </div>
+                <motion.a
+                  href={projectInsights.latestRelease.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.05 }}
+                  className="p-1 bg-purple-100 hover:bg-purple-200 rounded transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3 text-purple-600" />
+                </motion.a>
+              </div>
+              {projectInsights.latestRelease.body && (
+                <div className="text-xs text-purple-700 mt-2 line-clamp-3">
+                  {projectInsights.latestRelease.body.substring(0, 150)}...
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Additional Repository Information - Full Width */}
+        <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl p-6 border border-teal-200 mb-6">
+          <h3 className="text-lg font-bold text-teal-900 mb-6 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-teal-600" />
+            Additional Repository Information
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="flex flex-col items-center text-center p-4 bg-white/60 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <GitBranch className="w-4 h-4 text-teal-600" />
+                <span className="text-sm text-teal-800 font-medium">
+                  Default Branch
+                </span>
+              </div>
+              <span className="text-xs font-medium text-teal-900 bg-teal-100 px-2 py-1 rounded">
+                {repository.default_branch || "main"}
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-4 bg-white/60 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <MessageCircle className="w-4 h-4 text-teal-600" />
+                <span className="text-sm text-teal-800 font-medium">
+                  Discussions
+                </span>
+              </div>
+              <span
+                className={`text-xs font-medium px-2 py-1 rounded ${
+                  repository.has_discussions
+                    ? "text-green-900 bg-green-100"
+                    : "text-gray-900 bg-gray-100"
+                }`}
+              >
+                {repository.has_discussions ? "Active" : "Disabled"}
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-4 bg-white/60 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="w-4 h-4 text-teal-600" />
+                <span className="text-sm text-teal-800 font-medium">
+                  Stargazers
+                </span>
+              </div>
+              <span className="text-xs font-medium text-teal-900 bg-teal-100 px-2 py-1 rounded">
+                {repository.stargazers_count.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-4 bg-white/60 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="w-4 h-4 text-teal-600" />
+                <span className="text-sm text-teal-800 font-medium">
+                  License
+                </span>
+              </div>
+              <span className="text-xs font-medium text-teal-900 bg-teal-100 px-2 py-1 rounded">
+                {repository.license
+                  ? formatLicense(repository.license)
+                  : "No License"}
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-4 bg-white/60 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Eye className="w-4 h-4 text-teal-600" />
+                <span className="text-sm text-teal-800 font-medium">
+                  Visibility
+                </span>
+              </div>
+              <span
+                className={`text-xs font-medium px-2 py-1 rounded ${
+                  repository.private
+                    ? "text-red-900 bg-red-100"
+                    : "text-green-900 bg-green-100"
+                }`}
+              >
+                {repository.private ? "Private" : "Public"}
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-4 bg-white/60 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="w-4 h-4 text-teal-600" />
+                <span className="text-sm text-teal-800 font-medium">
+                  Created
+                </span>
+              </div>
+              <span className="text-xs font-medium text-teal-900 bg-teal-100 px-2 py-1 rounded">
+                {formatDate(repository.created_at)}
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-4 bg-white/60 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Download className="w-4 h-4 text-teal-600" />
+                <span className="text-sm text-teal-800 font-medium">Size</span>
+              </div>
+              <span className="text-xs font-medium text-teal-900 bg-teal-100 px-2 py-1 rounded">
+                {(repository.size / 1024).toFixed(1)} MB
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-4 bg-white/60 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Globe className="w-4 h-4 text-teal-600" />
+                <span className="text-sm text-teal-800 font-medium">
+                  Homepage
+                </span>
+              </div>
+              <span className="text-xs font-medium text-teal-900 bg-teal-100 px-2 py-1 rounded">
+                {repository.homepage ? "Available" : "None"}
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-4 bg-white/60 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <UserPlus className="w-4 h-4 text-teal-600" />
+                <span className="text-sm text-teal-800 font-medium">
+                  Allow Forking
+                </span>
+              </div>
+              <span
+                className={`text-xs font-medium px-2 py-1 rounded ${
+                  repository.allow_forking
+                    ? "text-green-900 bg-green-100"
+                    : "text-red-900 bg-red-100"
+                }`}
+              >
+                {repository.allow_forking ? "Enabled" : "Disabled"}
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-4 bg-white/60 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Code className="w-4 h-4 text-teal-600" />
+                <span className="text-sm text-teal-800 font-medium">
+                  Main Language
+                </span>
+              </div>
+              <span className="text-xs font-medium text-teal-900 bg-teal-100 px-2 py-1 rounded">
+                {repository.language || "N/A"}
+              </span>
             </div>
           </div>
         </div>
