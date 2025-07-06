@@ -582,12 +582,13 @@ const RepoCard = ({
         {/* Advanced Repository Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <RepositoryHealthCard
-            health={health}
-            activity={activity}
-            contributorInsights={contributorInsights}
-            qualityMetrics={qualityMetrics}
+            commits={commits}
+            issues={issues}
+            pullRequests={pullRequests}
+            releases={releases}
+            repository={repository}
           />
-          <LanguageAnalysisCard languageDiversity={languageDiversity} />
+          <LanguageAnalysisCard repository={repository} />
           <ProjectStatisticsCard projectInsights={projectInsights} />
         </div>
 
