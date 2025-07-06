@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import {
   Star,
   GitFork,
@@ -50,7 +51,154 @@ const RepoCard = ({
   branches = [],
   pullRequests = [],
   issues = [],
+  totalCommits = null, // Optional: actual total commit count from API
 }) => {
+  const [actualTotalCommits, setActualTotalCommits] = useState(
+    totalCommits || commits.length
+  );
+  const [isLoadingCommits, setIsLoadingCommits] = useState(false);
+  const [hasMoreCommits, setHasMoreCommits] = useState(false);
+
+  // Fetch actual commit count from GitHub API if not provided
+  useEffect(() => {
+    const fetchActualCommitCount = async () => {
+      // Only fetch if totalCommits not provided and we have exactly 100 commits (likely paginated)
+      if (!totalCommits && commits.length >= 100) {
+        setIsLoadingCommits(true);
+        try {
+          const [owner, repo] = repository.full_name.split("/");
+          let realTotalCommits = commits.length;
+
+          // Method 1: Try stats/contributors endpoint
+          try {
+            const statsResponse = await fetch(
+              `https://api.github.com/repos/${owner}/${repo}/stats/contributors`,
+              {
+                headers: {
+                  Accept: "application/vnd.github.v3+json",
+                },
+              }
+            );
+
+            if (statsResponse.ok) {
+              const contributors = await statsResponse.json();
+              if (contributors && contributors.length > 0) {
+                realTotalCommits = contributors.reduce(
+                  (total, contributor) => total + contributor.total,
+                  0
+                );
+                setActualTotalCommits(realTotalCommits);
+                return; // Success, exit early
+              }
+            }
+          } catch (error) {
+            console.warn("Stats/contributors API failed:", error);
+          }
+
+          // Method 2: Try pagination approach with commits endpoint
+          try {
+            const commitsResponse = await fetch(
+              `https://api.github.com/repos/${owner}/${repo}/commits?per_page=1&page=1`,
+              {
+                headers: {
+                  Accept: "application/vnd.github.v3+json",
+                },
+              }
+            );
+
+            if (commitsResponse.ok) {
+              const linkHeader = commitsResponse.headers.get("Link");
+              if (linkHeader) {
+                // Parse the Link header to get the last page number
+                const lastPageMatch = linkHeader.match(
+                  /page=(\d+)>; rel="last"/
+                );
+                if (lastPageMatch) {
+                  const lastPage = parseInt(lastPageMatch[1]);
+
+                  // Get the last page to count remaining commits
+                  const lastPageResponse = await fetch(
+                    `https://api.github.com/repos/${owner}/${repo}/commits?per_page=100&page=${lastPage}`,
+                    {
+                      headers: {
+                        Accept: "application/vnd.github.v3+json",
+                      },
+                    }
+                  );
+
+                  if (lastPageResponse.ok) {
+                    const lastPageCommits = await lastPageResponse.json();
+                    realTotalCommits =
+                      (lastPage - 1) * 100 + lastPageCommits.length;
+                    setActualTotalCommits(realTotalCommits);
+                    return; // Success, exit early
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.warn("Pagination method failed:", error);
+          }
+
+          // Method 3: Try to estimate based on repository age and recent activity
+          try {
+            const repoResponse = await fetch(
+              `https://api.github.com/repos/${owner}/${repo}`,
+              {
+                headers: {
+                  Accept: "application/vnd.github.v3+json",
+                },
+              }
+            );
+
+            if (repoResponse.ok) {
+              const repoData = await repoResponse.json();
+              // If repo has been updated recently and we have 100 commits,
+              // it's likely there are more than 100
+              if (repoData.updated_at) {
+                const daysSinceUpdate = differenceInDays(
+                  new Date(),
+                  new Date(repoData.updated_at)
+                );
+
+                // If recently updated and we have exactly 100 commits, estimate more
+                if (daysSinceUpdate < 30 && commits.length === 100) {
+                  // Conservative estimate based on activity
+                  const monthsSinceCreation = differenceInMonths(
+                    new Date(),
+                    new Date(repoData.created_at)
+                  );
+
+                  // Rough estimation: if repo is active and old, likely more commits
+                  if (monthsSinceCreation > 6) {
+                    realTotalCommits = Math.max(150, commits.length * 1.5);
+                    setActualTotalCommits(Math.floor(realTotalCommits));
+                    return;
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.warn("Repository estimation failed:", error);
+          }
+
+          // If we still have exactly 100 commits and couldn't get exact count,
+          // indicate there are likely more
+          if (commits.length === 100 && realTotalCommits === 100) {
+            setHasMoreCommits(true);
+          }
+        } catch (error) {
+          console.warn("Failed to fetch actual commit count:", error);
+          // Keep the default value if all methods fail
+        } finally {
+          setIsLoadingCommits(false);
+        }
+      }
+    };
+
+    fetchActualCommitCount();
+  }, [repository.full_name, totalCommits, commits.length]);
+
   if (!repository) return null;
 
   const formatDate = (dateString) => {
@@ -325,12 +473,14 @@ const RepoCard = ({
     ];
 
     return {
-      total: commits.length,
+      total: actualTotalCommits,
       recent7Days: last7Days.length,
       recent30Days: last30Days.length,
       weeklyFrequency: Math.round(last30Days.length / 4.3),
       uniqueAuthors: commitAuthors.length,
-      avgCommitsPerAuthor: Math.round(commits.length / commitAuthors.length),
+      avgCommitsPerAuthor: Math.round(
+        actualTotalCommits / commitAuthors.length
+      ),
       mostRecentCommit: commits[0],
       commitVelocity:
         last7Days.length > 0
@@ -390,7 +540,7 @@ const RepoCard = ({
       className="bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden"
     >
       {/* Premium Header with Gradient */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6 text-white">
+      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 p-6 text-white">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
@@ -430,7 +580,23 @@ const RepoCard = ({
         </div>
 
         {/* Premium Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <GitCommit className="w-5 h-5 text-orange-300" />
+              <span className="text-sm font-medium">Commits</span>
+              {isLoadingCommits && (
+                <div className="w-3 h-3 border-2 border-orange-300 border-t-transparent rounded-full animate-spin"></div>
+              )}
+            </div>
+            <div className="text-2xl font-bold">
+              {commitPatterns?.total?.toLocaleString() || 0}
+              {hasMoreCommits && (
+                <span className="text-lg text-orange-200">+</span>
+              )}
+            </div>
+          </div>
+
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <Star className="w-5 h-5 text-yellow-300" />
@@ -845,86 +1011,365 @@ const RepoCard = ({
             </div>
           )}
 
-          {/* Repository Features & Quality */}
+          {/* Enhanced Repository Features & Quality */}
           <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-200">
-            <h3 className="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-indigo-900 mb-6 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-indigo-600" />
-              Repository Features
+              Repository Features & Analysis
             </h3>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      repository.has_issues ? "bg-green-500" : "bg-gray-300"
-                    }`}
-                  />
-                  <span className="text-sm text-indigo-800">Issues</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      repository.has_wiki ? "bg-green-500" : "bg-gray-300"
-                    }`}
-                  />
-                  <span className="text-sm text-indigo-800">Wiki</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      repository.has_pages ? "bg-green-500" : "bg-gray-300"
-                    }`}
-                  />
-                  <span className="text-sm text-indigo-800">Pages</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      repository.has_projects ? "bg-green-500" : "bg-gray-300"
-                    }`}
-                  />
-                  <span className="text-sm text-indigo-800">Projects</span>
+            <div className="space-y-6">
+              {/* Core Features Grid */}
+              <div>
+                <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4" />
+                  Core Features
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Bug className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">Issues</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-3 h-3 rounded-full ${
+                          repository.has_issues ? "bg-green-500" : "bg-gray-300"
+                        }`}
+                      />
+                      <span className="text-xs text-indigo-700">
+                        {repository.has_issues
+                          ? `${repository.open_issues_count} open`
+                          : "Disabled"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">Wiki</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-3 h-3 rounded-full ${
+                          repository.has_wiki ? "bg-green-500" : "bg-gray-300"
+                        }`}
+                      />
+                      <span className="text-xs text-indigo-700">
+                        {repository.has_wiki ? "Available" : "Disabled"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">Pages</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-3 h-3 rounded-full ${
+                          repository.has_pages ? "bg-green-500" : "bg-gray-300"
+                        }`}
+                      />
+                      <span className="text-xs text-indigo-700">
+                        {repository.has_pages ? "Deployed" : "Disabled"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">Projects</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-3 h-3 rounded-full ${
+                          repository.has_projects
+                            ? "bg-green-500"
+                            : "bg-gray-300"
+                        }`}
+                      />
+                      <span className="text-xs text-indigo-700">
+                        {repository.has_projects ? "Active" : "Disabled"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-indigo-700">License</span>
-                  <span className="font-semibold text-indigo-900">
-                    {repository.license ? "✓" : "✗"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-indigo-700">Default Branch</span>
-                  <span className="font-semibold text-indigo-900">
-                    {repository.default_branch || "main"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-indigo-700">Repository Size</span>
-                  <span className="font-semibold text-indigo-900">
-                    {(repository.size / 1024).toFixed(1)} MB
-                  </span>
+              {/* Repository Information */}
+              <div>
+                <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Repository Information
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">License</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
+                        {repository.license
+                          ? formatLicense(repository.license)
+                          : "No License"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <GitBranch className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">
+                        Default Branch
+                      </span>
+                    </div>
+                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
+                      {repository.default_branch || "main"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Download className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">
+                        Repository Size
+                      </span>
+                    </div>
+                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
+                      {(repository.size / 1024).toFixed(1)} MB
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">
+                        Visibility
+                      </span>
+                    </div>
+                    <span
+                      className={`text-xs font-medium px-2 py-1 rounded ${
+                        repository.private
+                          ? "text-red-900 bg-red-100"
+                          : "text-green-900 bg-green-100"
+                      }`}
+                    >
+                      {repository.private ? "Private" : "Public"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
+              {/* Development Workflow */}
+              <div>
+                <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                  <GitMerge className="w-4 h-4" />
+                  Development Workflow
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <GitPullRequest className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">
+                        Pull Requests
+                      </span>
+                    </div>
+                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
+                      {projectInsights.pullRequests.total}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <GitCommit className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">
+                        Total Commits
+                      </span>
+                      {isLoadingCommits && (
+                        <div className="w-3 h-3 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                      )}
+                    </div>
+                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
+                      {commitPatterns?.total?.toLocaleString() || 0}
+                      {hasMoreCommits && (
+                        <span className="text-indigo-600">+</span>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <GitBranch className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">Branches</span>
+                    </div>
+                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
+                      {projectInsights.branches}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">Releases</span>
+                    </div>
+                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
+                      {projectInsights.releases}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Community & Collaboration */}
+              <div>
+                <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Community & Collaboration
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <UserPlus className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">
+                        Allow Forking
+                      </span>
+                    </div>
+                    <span
+                      className={`text-xs font-medium px-2 py-1 rounded ${
+                        repository.allow_forking
+                          ? "text-green-900 bg-green-100"
+                          : "text-red-900 bg-red-100"
+                      }`}
+                    >
+                      {repository.allow_forking ? "Enabled" : "Disabled"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">
+                        Discussions
+                      </span>
+                    </div>
+                    <span
+                      className={`text-xs font-medium px-2 py-1 rounded ${
+                        repository.has_discussions
+                          ? "text-green-900 bg-green-100"
+                          : "text-gray-900 bg-gray-100"
+                      }`}
+                    >
+                      {repository.has_discussions ? "Active" : "Disabled"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Star className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-indigo-800">
+                        Stargazers
+                      </span>
+                    </div>
+                    <span className="text-xs font-medium text-indigo-900 bg-indigo-100 px-2 py-1 rounded">
+                      {repository.stargazers_count.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Latest Release Information */}
               {projectInsights.latestRelease && (
-                <div className="bg-white/60 rounded-xl p-3">
-                  <div className="text-sm text-indigo-700 mb-1">
+                <div>
+                  <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                    <Award className="w-4 h-4" />
                     Latest Release
-                  </div>
-                  <div className="font-medium text-indigo-900 text-sm">
-                    {projectInsights.latestRelease.name ||
-                      projectInsights.latestRelease.tag_name}
-                  </div>
-                  <div className="text-xs text-indigo-600 mt-1">
-                    {formatRelativeTime(
-                      projectInsights.latestRelease.published_at
+                  </h4>
+                  <div className="p-4 bg-white/60 rounded-lg border border-indigo-200">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <div className="font-semibold text-indigo-900 text-sm">
+                          {projectInsights.latestRelease.name ||
+                            projectInsights.latestRelease.tag_name}
+                        </div>
+                        <div className="text-xs text-indigo-600">
+                          Released{" "}
+                          {formatRelativeTime(
+                            projectInsights.latestRelease.published_at
+                          )}
+                        </div>
+                      </div>
+                      <motion.a
+                        href={projectInsights.latestRelease.html_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        whileHover={{ scale: 1.05 }}
+                        className="p-1 bg-indigo-100 hover:bg-indigo-200 rounded transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3 text-indigo-600" />
+                      </motion.a>
+                    </div>
+                    {projectInsights.latestRelease.body && (
+                      <div className="text-xs text-indigo-700 mt-2 line-clamp-2">
+                        {projectInsights.latestRelease.body.substring(0, 100)}
+                        ...
+                      </div>
                     )}
                   </div>
                 </div>
               )}
+
+              {/* Repository Quality Score */}
+              <div>
+                <h4 className="text-md font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Repository Quality Score
+                </h4>
+                <div className="p-4 bg-white/60 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-indigo-800">
+                      Overall Quality
+                    </span>
+                    <span className="text-sm font-bold text-indigo-900">
+                      {Math.round(
+                        (((repository.has_issues ? 1 : 0) +
+                          (repository.has_wiki ? 1 : 0) +
+                          (repository.has_pages ? 1 : 0) +
+                          (repository.license ? 1 : 0) +
+                          (repository.description ? 1 : 0) +
+                          (repository.topics && repository.topics.length > 0
+                            ? 1
+                            : 0)) /
+                          6) *
+                          100
+                      )}
+                      %
+                    </span>
+                  </div>
+                  <div className="w-full bg-indigo-200 rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                      style={{
+                        width: `${Math.round(
+                          (((repository.has_issues ? 1 : 0) +
+                            (repository.has_wiki ? 1 : 0) +
+                            (repository.has_pages ? 1 : 0) +
+                            (repository.license ? 1 : 0) +
+                            (repository.description ? 1 : 0) +
+                            (repository.topics && repository.topics.length > 0
+                              ? 1
+                              : 0)) /
+                            6) *
+                            100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
