@@ -19,8 +19,8 @@ const RepositoryHealthCard = ({
   const getRecentActivities = () => {
     const activities = [];
 
-    // Add recent commits (last 5)
-    commits.slice(0, 5).forEach((commit) => {
+    // Add recent commits (last 15)
+    commits.slice(0, 15).forEach((commit) => {
       activities.push({
         type: "commit",
         icon: GitCommit,
@@ -33,10 +33,10 @@ const RepositoryHealthCard = ({
       });
     });
 
-    // Add recent issues (last 3 open)
+    // Add recent issues (last 8 open)
     issues
       .filter((issue) => issue.state === "open")
-      .slice(0, 3)
+      .slice(0, 8)
       .forEach((issue) => {
         activities.push({
           type: "issue",
@@ -49,8 +49,8 @@ const RepositoryHealthCard = ({
         });
       });
 
-    // Add recent PRs (last 3)
-    pullRequests.slice(0, 3).forEach((pr) => {
+    // Add recent PRs (last 8)
+    pullRequests.slice(0, 8).forEach((pr) => {
       activities.push({
         type: "pr",
         icon: GitPullRequest,
@@ -68,8 +68,8 @@ const RepositoryHealthCard = ({
       });
     });
 
-    // Add recent releases (last 2)
-    releases.slice(0, 2).forEach((release) => {
+    // Add recent releases (last 4)
+    releases.slice(0, 4).forEach((release) => {
       activities.push({
         type: "release",
         icon: Tag,
@@ -85,7 +85,7 @@ const RepositoryHealthCard = ({
     return activities
       .filter((activity) => activity.date)
       .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 8); // Show only last 8 activities
+      .slice(0, 20); // Show only last 20 activities
   };
 
   const recentActivities = getRecentActivities();
@@ -111,31 +111,31 @@ const RepositoryHealthCard = ({
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
-      <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+      <h3 className="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">
         <Activity className="w-5 h-5 text-blue-600" />
         Recent Activity
       </h3>
 
-      <div className="space-y-3 max-h-80 overflow-y-auto">
+      <div className="space-y-1.5 max-h-64 overflow-y-auto">
         {recentActivities.length > 0 ? (
           recentActivities.map((activity, index) => {
             const IconComponent = activity.icon;
             return (
               <div
                 key={index}
-                className="flex items-start gap-3 p-3 bg-white/60 rounded-lg hover:bg-white/80 transition-colors cursor-pointer"
+                className="flex items-start gap-2 p-2 bg-white/60 rounded-lg hover:bg-white/80 transition-colors cursor-pointer"
                 onClick={() => window.open(activity.url, "_blank")}
               >
                 <div
-                  className={`p-2 rounded-lg ${getColorClasses(
+                  className={`p-1.5 rounded-lg ${getColorClasses(
                     activity.color
                   )}`}
                 >
-                  <IconComponent className="w-4 h-4" />
+                  <IconComponent className="w-3.5 h-3.5" />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-0.5">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {activity.title}
                     </p>
@@ -167,17 +167,17 @@ const RepositoryHealthCard = ({
             );
           })
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <div className="text-center py-6 text-gray-500">
+            <Activity className="w-6 h-6 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No recent activity found</p>
           </div>
         )}
       </div>
 
       {recentActivities.length > 0 && (
-        <div className="mt-4 pt-3 border-t border-blue-200">
+        <div className="mt-2 pt-2 border-t border-blue-200">
           <p className="text-xs text-blue-700 text-center">
-            Showing {recentActivities.length} recent activities •
+            {recentActivities.length} activities •
             <a
               href={`${repository?.html_url}/activity`}
               target="_blank"
