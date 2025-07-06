@@ -210,71 +210,74 @@ const RepositoryHealthRadarChart = ({
         </div>
       </div>
 
-      {/* Radar Chart */}
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadarChart
-            data={healthData}
-            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-          >
-            <PolarGrid stroke="#e5e7eb" />
-            <PolarAngleAxis
-              dataKey="dimension"
-              tick={{ fontSize: 12, fill: "#374151" }}
-            />
-            <PolarRadiusAxis
-              angle={90}
-              domain={[0, 100]}
-              tick={{ fontSize: 10, fill: "#6b7280" }}
-            />
-            <Radar
-              name="Health Score"
-              dataKey="score"
-              stroke="#3b82f6"
-              fill="#3b82f6"
-              fillOpacity={0.3}
-              strokeWidth={2}
-              dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-            />
-          </RadarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Dimension Breakdown */}
-      <div className="mt-6 grid grid-cols-2 lg:grid-cols-3 gap-4">
-        {healthData.map((dimension, index) => {
-          const dimHealth = getHealthLevel(dimension.score);
-          return (
-            <motion.div
-              key={dimension.dimension}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="p-3 bg-gray-50 rounded-lg"
+      {/* Main Content: Chart on Left, Metrics on Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Radar Chart - Left Side (Takes 3/5 of width) */}
+        <div className="lg:col-span-3 h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart
+              data={healthData}
+              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  {dimension.dimension}
-                </span>
-                <span
-                  className="text-sm font-bold"
-                  style={{ color: dimHealth.color }}
-                >
-                  {dimension.score}%
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="h-2 rounded-full transition-all duration-300"
-                  style={{
-                    width: `${dimension.score}%`,
-                    backgroundColor: dimHealth.color,
-                  }}
-                />
-              </div>
-            </motion.div>
-          );
-        })}
+              <PolarGrid stroke="#e5e7eb" />
+              <PolarAngleAxis
+                dataKey="dimension"
+                tick={{ fontSize: 12, fill: "#374151" }}
+              />
+              <PolarRadiusAxis
+                angle={90}
+                domain={[0, 100]}
+                tick={{ fontSize: 10, fill: "#6b7280" }}
+              />
+              <Radar
+                name="Health Score"
+                dataKey="score"
+                stroke="#3b82f6"
+                fill="#3b82f6"
+                fillOpacity={0.3}
+                strokeWidth={2}
+                dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Dimension Breakdown - Right Side (Takes 2/5 of width) */}
+        <div className="lg:col-span-2 grid grid-cols-1 gap-2 h-80 overflow-y-auto">
+          {healthData.map((dimension, index) => {
+            const dimHealth = getHealthLevel(dimension.score);
+            return (
+              <motion.div
+                key={dimension.dimension}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-2.5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-md border border-gray-200 flex-shrink-0"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-medium text-gray-700">
+                    {dimension.dimension}
+                  </span>
+                  <span
+                    className="text-sm font-bold"
+                    style={{ color: dimHealth.color }}
+                  >
+                    {dimension.score}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div
+                    className="h-1.5 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${dimension.score}%`,
+                      backgroundColor: dimHealth.color,
+                    }}
+                  />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Health Recommendations */}
