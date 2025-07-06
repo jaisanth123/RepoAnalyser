@@ -242,7 +242,7 @@ const LanguageAnalysisCard = ({ repository }) => {
       <div key={`${folderPath}-${depth}`}>
         {/* Main item */}
         <div
-          className={`flex items-center gap-2 p-2 rounded-lg hover:bg-white/60 transition-colors ${
+          className={`flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/60 transition-colors ${
             isFolder ? "cursor-pointer" : ""
           }`}
           style={{ paddingLeft: `${8 + depth * 16}px` }}
@@ -316,25 +316,25 @@ const LanguageAnalysisCard = ({ repository }) => {
 
   return (
     <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-6 border border-gray-200">
-      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
         <FolderOpen className="w-5 h-5 text-gray-600" />
         File Structure
       </h3>
 
       {loading ? (
-        <div className="flex items-center justify-center min-h-32">
+        <div className="flex items-center justify-center min-h-24">
           <div className="flex items-center gap-2 text-gray-600">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span className="text-sm">Loading files...</span>
           </div>
         </div>
       ) : (
-        <div className="max-h-44 overflow-y-auto">
-          <div className="space-y-1">
+        <div className="max-h-64 overflow-y-auto">
+          <div className="space-y-0.5">
             {sortedFiles.length > 0 ? (
               sortedFiles.map((item) => renderFileItem(item, 0))
             ) : (
-              <div className="text-center py-6 text-gray-500">
+              <div className="text-center py-4 text-gray-500">
                 <FolderOpen className="w-6 h-6 mx-auto mb-2 opacity-50" />
                 {error ? (
                   <div>
@@ -359,7 +359,7 @@ const LanguageAnalysisCard = ({ repository }) => {
 
       {/* File count indicator */}
       {sortedFiles.length > 0 && (
-        <div className="mt-2 pt-2 border-t border-gray-200">
+        <div className="mt-1 pt-1.5 border-t border-gray-200">
           <p className="text-xs text-gray-500 text-center">
             Showing {sortedFiles.length} items at root level
             {Object.keys(folderContents).length > 0 && (
