@@ -147,16 +147,16 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Stats Grid */}
-        <motion.div
+        {/* <motion.div
           variants={itemVariants}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
         >
           {stats.map((stat, index) => (
             <motion.div key={stat.title} variants={itemVariants}>
-              <StatsCard {...stat} />
+              <StatsCard {...stat} /
             </motion.div>
           ))}
-        </motion.div>
+        </motion.div> */}
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
