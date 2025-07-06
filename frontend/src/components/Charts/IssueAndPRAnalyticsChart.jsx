@@ -23,6 +23,8 @@ import {
   Target,
   TrendingUp,
   Activity,
+  FileText,
+  Smile,
 } from "lucide-react";
 import {
   format,
@@ -339,24 +341,38 @@ const IssueAndPRAnalyticsChart = ({
             Issue Status Distribution
           </h4>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={issueStatusData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value}`}
-                  labelLine={false}
-                >
-                  {issueStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<PieTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
+            {issueStatusData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={issueStatusData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                    labelLine={false}
+                  >
+                    {issueStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<PieTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                <Smile className="w-12 h-12 text-green-500 mb-3" />
+                <div className="text-lg font-medium text-gray-700 mb-1">
+                  No Issues Found!
+                </div>
+                <div className="text-sm text-gray-500 text-center">
+                  This repository has a clean slate with no reported issues.
+                  <br />
+                  Great work maintaining a healthy codebase! 🎉
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -366,24 +382,38 @@ const IssueAndPRAnalyticsChart = ({
             Pull Request Status Distribution
           </h4>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={prStatusData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value}`}
-                  labelLine={false}
-                >
-                  {prStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<PieTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
+            {prStatusData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={prStatusData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                    labelLine={false}
+                  >
+                    {prStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<PieTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                <FileText className="w-12 h-12 text-blue-500 mb-3" />
+                <div className="text-lg font-medium text-gray-700 mb-1">
+                  No Pull Requests Yet
+                </div>
+                <div className="text-sm text-gray-500 text-center">
+                  This repository hasn't had any pull requests yet.
+                  <br />
+                  Ready for collaboration and code reviews! 🚀
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -396,40 +426,49 @@ const IssueAndPRAnalyticsChart = ({
             <Target className="w-4 h-4" />
             Issue Management Health
           </h4>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-red-700">Resolution Rate</span>
-              <span
-                className="font-semibold"
-                style={{ color: issueHealth.color }}
-              >
-                {issueHealth.level}
-              </span>
-            </div>
-            <div className="w-full bg-red-200 rounded-full h-3">
-              <div
-                className="h-3 rounded-full transition-all duration-300"
-                style={{
-                  width: `${metrics.issues.resolutionRate}%`,
-                  backgroundColor: issueHealth.color,
-                }}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-red-600">Avg Resolution:</span>
-                <div className="font-medium text-red-900">
-                  {metrics.issues.avgResolutionTime} days
+          {metrics.issues.total > 0 ? (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-red-700">Resolution Rate</span>
+                <span
+                  className="font-semibold"
+                  style={{ color: issueHealth.color }}
+                >
+                  {issueHealth.level}
+                </span>
+              </div>
+              <div className="w-full bg-red-200 rounded-full h-3">
+                <div
+                  className="h-3 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${metrics.issues.resolutionRate}%`,
+                    backgroundColor: issueHealth.color,
+                  }}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-red-600">Avg Resolution:</span>
+                  <div className="font-medium text-red-900">
+                    {metrics.issues.avgResolutionTime} days
+                  </div>
+                </div>
+                <div>
+                  <span className="text-red-600">Recent Activity:</span>
+                  <div className="font-medium text-red-900">
+                    {metrics.issues.recent} new issues
+                  </div>
                 </div>
               </div>
-              <div>
-                <span className="text-red-600">Recent Activity:</span>
-                <div className="font-medium text-red-900">
-                  {metrics.issues.recent} new issues
-                </div>
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <Smile className="w-8 h-8 text-green-500 mx-auto mb-2" />
+              <div className="text-sm text-red-700">
+                No issues to track yet - that's a good sign!
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* PR Health */}
@@ -438,37 +477,49 @@ const IssueAndPRAnalyticsChart = ({
             <TrendingUp className="w-4 h-4" />
             PR Management Health
           </h4>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-blue-700">Merge Rate</span>
-              <span className="font-semibold" style={{ color: prHealth.color }}>
-                {prHealth.level}
-              </span>
-            </div>
-            <div className="w-full bg-blue-200 rounded-full h-3">
-              <div
-                className="h-3 rounded-full transition-all duration-300"
-                style={{
-                  width: `${metrics.pullRequests.mergeRate}%`,
-                  backgroundColor: prHealth.color,
-                }}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-blue-600">Avg Merge Time:</span>
-                <div className="font-medium text-blue-900">
-                  {metrics.pullRequests.avgMergeTime} days
+          {metrics.pullRequests.total > 0 ? (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-blue-700">Merge Rate</span>
+                <span
+                  className="font-semibold"
+                  style={{ color: prHealth.color }}
+                >
+                  {prHealth.level}
+                </span>
+              </div>
+              <div className="w-full bg-blue-200 rounded-full h-3">
+                <div
+                  className="h-3 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${metrics.pullRequests.mergeRate}%`,
+                    backgroundColor: prHealth.color,
+                  }}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-blue-600">Avg Merge Time:</span>
+                  <div className="font-medium text-blue-900">
+                    {metrics.pullRequests.avgMergeTime} days
+                  </div>
+                </div>
+                <div>
+                  <span className="text-blue-600">Recent Activity:</span>
+                  <div className="font-medium text-blue-900">
+                    {metrics.pullRequests.recent} new PRs
+                  </div>
                 </div>
               </div>
-              <div>
-                <span className="text-blue-600">Recent Activity:</span>
-                <div className="font-medium text-blue-900">
-                  {metrics.pullRequests.recent} new PRs
-                </div>
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <FileText className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+              <div className="text-sm text-blue-700">
+                Ready to start collaborating with pull requests!
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </motion.div>
