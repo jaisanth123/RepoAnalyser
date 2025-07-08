@@ -206,37 +206,37 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="bg-white ">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="bg-white">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <div className="flex justify-center mb-8">
-              <div className="p-4 bg-blue-100 rounded-full">
-                <Github className="w-16 h-16 text-blue-600" />
+            <div className="flex justify-center mb-6 sm:mb-8">
+              <div className="p-3 sm:p-4 bg-blue-100 rounded-full">
+                <Github className="w-12 h-12 sm:w-16 sm:h-16 text-blue-600" />
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
               GitHub Repository
               <span className="block text-blue-600">Analyzer</span>
             </h1>
 
             {/* API Status Section */}
-            <div className="mb-8">
-              <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
                 <div className="flex items-center gap-2">
                   {AuthAPI.hasToken() ? (
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   ) : (
-                    <AlertCircle className="w-5 h-5 text-yellow-600" />
+                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
                   )}
-                  <span className="text-gray-600 text-sm">
+                  <span className="text-gray-600 text-xs sm:text-sm">
                     {AuthAPI.hasToken()
                       ? "GitHub API Connected"
                       : "Limited API Access"}
@@ -245,19 +245,21 @@ const Home = () => {
 
                 <button
                   onClick={() => setShowTokenModal(true)}
-                  className="text-blue-600 hover:text-blue-700 transition-colors text-sm flex items-center gap-2 font-medium"
+                  className="text-blue-600 hover:text-blue-700 transition-colors text-xs sm:text-sm flex items-center gap-2 font-medium"
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
                   Configure Token
                 </button>
               </div>
 
               {rateLimit && (
-                <div className="text-sm text-gray-500">
-                  API Rate Limit: {rateLimit.rate.remaining}/
-                  {rateLimit.rate.limit} remaining
+                <div className="text-xs sm:text-sm text-gray-500 px-2">
+                  <span className="block sm:inline">
+                    API Rate Limit: {rateLimit.rate.remaining}/
+                    {rateLimit.rate.limit} remaining
+                  </span>
                   {rateLimit.rate.remaining < 10 && (
-                    <span className="text-yellow-600 ml-2 font-medium">
+                    <span className="text-yellow-600 ml-0 sm:ml-2 font-medium block sm:inline mt-1 sm:mt-0">
                       ⚠️ Rate limit low
                     </span>
                   )}
@@ -267,30 +269,31 @@ const Home = () => {
 
             {/* Repository Input */}
             <div className="max-w-2xl mx-auto">
-              <div className="relative">
+              <div className="relative flex flex-col sm:flex-row gap-2 sm:gap-0">
                 <input
                   type="text"
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Enter GitHub repository URL "
-                  className="w-full px-6 py-4 bg-white border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg"
+                  placeholder="Enter GitHub repository URL"
+                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-white border border-gray-300 rounded-xl sm:rounded-2xl sm:rounded-r-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg text-sm sm:text-base"
                 />
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleAnalyze}
                   disabled={loading}
-                  className="absolute right-2 top-2 bottom-2 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl sm:rounded-2xl sm:rounded-l-none font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md text-sm sm:text-base"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Analyzing...
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                      <span className="hidden xs:inline">Analyzing...</span>
+                      <span className="xs:hidden">Loading...</span>
                     </>
                   ) : (
                     <>
-                      <Search className="w-5 h-5" />
+                      <Search className="w-4 h-4 sm:w-5 sm:h-5" />
                       Analyze
                     </>
                   )}
@@ -301,7 +304,7 @@ const Home = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
+                  className="mt-3 sm:mt-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm sm:text-base"
                 >
                   {error}
                 </motion.div>
@@ -313,15 +316,15 @@ const Home = () => {
 
       {/* Results Section */}
       {results && (
-        <div className=" py-16">
+        <div className="py-8 sm:py-12 md:py-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+            className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8"
           >
             {/* Repository Card */}
-            <div className="mb-12">
+            <div className="mb-8 sm:mb-12">
               <RepoCard
                 repository={results.repository}
                 contributors={results.contributors}
@@ -336,7 +339,7 @@ const Home = () => {
             </div>
 
             {/* Stats Grid */}
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
               {calculateStats(results).map((stat, index) => (
                 <motion.div
                   key={stat.title}
@@ -350,7 +353,7 @@ const Home = () => {
             </div> */}
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
               {/* <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -375,36 +378,36 @@ const Home = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
-              className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
+              className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-200"
             >
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
                 Quick Stats
               </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-xl sm:text-2xl font-bold text-purple-600">
                     {results.commits?.length || 0}
                   </div>
-                  <div className="text-sm text-gray-600">Recent Commits</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Recent Commits</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600">
                     {Object.keys(results.languages).length}
                   </div>
-                  <div className="text-sm text-gray-600">Languages</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Languages</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600">
                     {results.releases?.length || 0}
                   </div>
-                  <div className="text-sm text-gray-600">Releases</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Releases</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-orange-600">
+                  <div className="text-xl sm:text-2xl font-bold text-orange-600">
                     {results.qualityMetrics?.linesOfCode?.toLocaleString() ||
                       "N/A"}
                   </div>
-                  <div className="text-sm text-gray-600">Lines of Code</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Lines of Code</div>
                 </div>
               </div>
             </motion.div> */}
@@ -414,17 +417,17 @@ const Home = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="mt-12 text-center"
+              className="mt-8 sm:mt-12 text-center"
             >
-              <p className="text-gray-600 mb-4">
+              <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">
                 Made by this{" "}
                 <a
                   href="https://github.com/jaisanth123"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-gray-500 underline font-bold hover:text-gray-700 transition-colors"
+                  className="inline-flex items-center gap-1 sm:gap-2 text-gray-500 underline font-bold hover:text-gray-700 transition-colors"
                 >
-                  {/* <User className="w-4 h-4" /> */}
+                  {/* <User className="w-3 h-3 sm:w-4 sm:h-4" /> */}
                   Guy
                 </a>
               </p>

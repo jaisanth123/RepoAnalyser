@@ -59,107 +59,92 @@ const RepositoryHealthRadarChart = ({
     const closedIssues = actualIssues.filter(
       (issue) => issue.state === "closed"
     ).length;
-    const issueResolutionRate =
-      closedIssues > 0
-        ? (closedIssues / (openIssues + closedIssues)) * 100
-        : 50;
 
-    const openPRs = pullRequests.filter((pr) => pr.state === "open").length;
-    const mergedPRs = pullRequests.filter((pr) => pr.state === "merged").length;
-    const prMergeRate =
-      mergedPRs > 0 ? (mergedPRs / (openPRs + mergedPRs)) * 100 : 50;
-
-    const qualityScore = (issueResolutionRate + prMergeRate) / 2;
-
-    // Maintenance Score (0-100)
-    const recentCommits = commits.filter((commit) => {
-      const commitDate = new Date(
-        commit.commit?.author?.date || commit.commit?.committer?.date
-      );
-      const daysSinceCommit = (new Date() - commitDate) / (1000 * 60 * 60 * 24);
-      return daysSinceCommit <= 30;
-    }).length;
-
-    const maintenanceScore = Math.min(
+    const qualityScore = Math.min(
       100,
-      recentCommits * 10 +
-        (releases.length > 0 ? 30 : 0) +
-        (repository.has_issues ? 20 : 0)
+      // Base score
+      50 +
+        // Issue management
+        (closedIssues > 0
+          ? Math.min(20, (closedIssues / (openIssues + closedIssues)) * 20)
+          : 0) +
+        // PR activity
+        (pullRequests.length > 0 ? Math.min(15, pullRequests.length * 2) : 0) +
+        // License presence
+        (repository.license ? 10 : 0) +
+        // Recent activity
+        (daysSinceUpdate < 30 ? 5 : 0)
     );
 
-    // Innovation Score (0-100)
-    const innovationScore = Math.min(
+    // Security Score (0-100)
+    const securityScore = Math.min(
       100,
-      (repository.topics && repository.topics.length > 0
-        ? repository.topics.length * 8
+      // Base security
+      40 +
+        // License
+        (repository.license ? 20 : 0) +
+        // Recent updates
+        (daysSinceUpdate < 7 ? 15 : daysSinceUpdate < 30 ? 10 : 0) +
+        // Community size (larger = more eyes)
+        (repository.stargazers_count > 100 ? 15 : 0) +
+        // Description and documentation
+        (repository.description ? 5 : 0) +
+        (repository.has_wiki ? 5 : 0)
+    );
+
+    // Maintenance Score (0-100)
+    const maintenanceScore = Math.min(
+      100,
+      // Recent activity
+      (daysSinceUpdate < 7
+        ? 30
+        : daysSinceUpdate < 30
+        ? 20
+        : daysSinceUpdate < 90
+        ? 10
         : 0) +
-        (releases.length > 0 ? Math.min(30, releases.length * 6) : 0) +
-        (repository.has_projects ? 20 : 0) +
-        (repository.has_discussions ? 15 : 0) +
-        (repository.allow_forking ? 10 : 0)
+        // Releases
+        (releases.length > 0 ? Math.min(25, releases.length * 5) : 0) +
+        // Contributor diversity
+        (contributors.length > 1 ? Math.min(20, contributors.length * 3) : 0) +
+        // Pull request activity
+        (pullRequests.length > 0 ? Math.min(15, pullRequests.length) : 0) +
+        // Documentation
+        (repository.description ? 5 : 0) +
+        (repository.license ? 5 : 0)
     );
 
     return [
-      {
-        dimension: "Activity",
-        score: Math.round(activityScore),
-        fullMark: 100,
-      },
-      {
-        dimension: "Community",
-        score: Math.round(communityScore),
-        fullMark: 100,
-      },
-      {
-        dimension: "Documentation",
-        score: Math.round(docScore),
-        fullMark: 100,
-      },
-      { dimension: "Quality", score: Math.round(qualityScore), fullMark: 100 },
-      {
-        dimension: "Maintenance",
-        score: Math.round(maintenanceScore),
-        fullMark: 100,
-      },
-      {
-        dimension: "Innovation",
-        score: Math.round(innovationScore),
-        fullMark: 100,
-      },
+      { dimension: "Activity", score: Math.round(activityScore) },
+      { dimension: "Community", score: Math.round(communityScore) },
+      { dimension: "Documentation", score: Math.round(docScore) },
+      { dimension: "Quality", score: Math.round(qualityScore) },
+      { dimension: "Security", score: Math.round(securityScore) },
+      { dimension: "Maintenance", score: Math.round(maintenanceScore) },
     ];
   };
 
   const healthData = calculateHealthDimensions();
   const overallScore = Math.round(
-    healthData.reduce((sum, dim) => sum + dim.score, 0) / healthData.length
+    healthData.reduce((sum, item) => sum + item.score, 0) / healthData.length
   );
 
   const getHealthLevel = (score) => {
-    if (score >= 85)
-      return { level: "Exceptional", color: "#10b981", icon: Award };
-    if (score >= 70)
-      return { level: "Excellent", color: "#3b82f6", icon: TrendingUp };
-    if (score >= 55) return { level: "Good", color: "#f59e0b", icon: Star };
-    if (score >= 40) return { level: "Fair", color: "#ef4444", icon: Shield };
-    return { level: "Needs Improvement", color: "#6b7280", icon: Shield };
+    if (score >= 90) return { level: "Excellent", color: "#10b981" };
+    if (score >= 75) return { level: "Very Good", color: "#3b82f6" };
+    if (score >= 60) return { level: "Good", color: "#8b5cf6" };
+    if (score >= 45) return { level: "Fair", color: "#f59e0b" };
+    return { level: "Needs Improvement", color: "#ef4444" };
   };
 
-  const healthLevel = getHealthLevel(overallScore);
-  const HealthIcon = healthLevel.icon;
+  const overallHealth = getHealthLevel(overallScore);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload;
       return (
         <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-900">{data.dimension}</p>
-          <p className="text-sm text-blue-600">{data.score}/100</p>
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div
-              className="h-2 rounded-full bg-blue-500"
-              style={{ width: `${data.score}%` }}
-            />
-          </div>
+          <p className="font-semibold text-gray-900 text-sm">{label}</p>
+          <p className="text-blue-600 text-sm">Score: {payload[0].value}%</p>
         </div>
       );
     }
@@ -170,68 +155,83 @@ const RepositoryHealthRadarChart = ({
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg"
+      className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg"
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3">
         <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-blue-600" />
-          <h3 className="text-xl font-bold text-gray-900">
-            Repository Health Analysis
+          <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+            Repository Health Overview
           </h3>
         </div>
-        <div className="text-right">
-          <div className="flex items-center gap-2 mb-1">
-            <HealthIcon
-              className="w-5 h-5"
-              style={{ color: healthLevel.color }}
-            />
-            <span
-              className="font-semibold"
-              style={{ color: healthLevel.color }}
-            >
-              {healthLevel.level}
-            </span>
-          </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {overallScore}/100
-          </div>
-        </div>
-      </div>
-
-      {/* Overall Health Score */}
-      <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-blue-800 font-medium">
-            Overall Health Score
-          </span>
-          <span className="text-blue-900 font-bold">{overallScore}%</span>
-        </div>
-        <div className="w-full bg-blue-200 rounded-full h-3">
+        <div className="text-left sm:text-right">
           <div
-            className="h-3 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"
-            style={{ width: `${overallScore}%` }}
-          />
+            className="text-lg sm:text-xl font-bold"
+            style={{ color: overallHealth.color }}
+          >
+            {overallScore}% - {overallHealth.level}
+          </div>
+          <div className="text-xs sm:text-sm text-gray-600">
+            Overall Health Score
+          </div>
         </div>
       </div>
 
-      {/* Main Content: Chart on Left, Metrics on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Radar Chart - Left Side (Takes 3/5 of width) */}
-        <div className="lg:col-span-3 h-80">
+      {/* Health Score Summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        {healthData.map((dimension, index) => {
+          const dimHealth = getHealthLevel(dimension.score);
+          return (
+            <motion.div
+              key={dimension.dimension}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="text-center p-2 sm:p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200"
+            >
+              <div
+                className="text-lg sm:text-xl font-bold"
+                style={{ color: dimHealth.color }}
+              >
+                {dimension.score}%
+              </div>
+              <div className="text-xs sm:text-sm text-gray-700">
+                {dimension.dimension}
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Chart and Details Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
+        {/* Radar Chart - Left Side (Takes 3/5 of width on large screens) */}
+        <div className="lg:col-span-3 h-64 sm:h-80 lg:h-96">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart
               data={healthData}
-              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+              margin={{
+                top: 20,
+                right: 20,
+                bottom: 20,
+                left: 20,
+              }}
             >
               <PolarGrid stroke="#e5e7eb" />
               <PolarAngleAxis
                 dataKey="dimension"
-                tick={{ fontSize: 12, fill: "#374151" }}
+                tick={{
+                  fontSize: window.innerWidth < 640 ? 10 : 12,
+                  fill: "#374151",
+                }}
               />
               <PolarRadiusAxis
                 angle={90}
                 domain={[0, 100]}
-                tick={{ fontSize: 10, fill: "#6b7280" }}
+                tick={{
+                  fontSize: window.innerWidth < 640 ? 8 : 10,
+                  fill: "#6b7280",
+                }}
               />
               <Radar
                 name="Health Score"
@@ -240,14 +240,18 @@ const RepositoryHealthRadarChart = ({
                 fill="#3b82f6"
                 fillOpacity={0.3}
                 strokeWidth={2}
-                dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+                dot={{
+                  fill: "#3b82f6",
+                  strokeWidth: 2,
+                  r: window.innerWidth < 640 ? 3 : 4,
+                }}
               />
             </RadarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Dimension Breakdown - Right Side (Takes 2/5 of width) */}
-        <div className="lg:col-span-2 grid grid-cols-1 gap-2 h-80 overflow-y-auto">
+        {/* Dimension Breakdown - Right Side (Takes 2/5 of width on large screens) */}
+        <div className="lg:col-span-2 grid grid-cols-1 gap-2 h-64 sm:h-80 lg:h-96 overflow-y-auto">
           {healthData.map((dimension, index) => {
             const dimHealth = getHealthLevel(dimension.score);
             return (
@@ -256,14 +260,14 @@ const RepositoryHealthRadarChart = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="p-2.5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-md border border-gray-200 flex-shrink-0"
+                className="p-2 sm:p-2.5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-md border border-gray-200 flex-shrink-0"
               >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-medium text-gray-700">
+                <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                  <span className="text-xs sm:text-sm font-medium text-gray-700">
                     {dimension.dimension}
                   </span>
                   <span
-                    className="text-sm font-bold"
+                    className="text-sm sm:text-base font-bold"
                     style={{ color: dimHealth.color }}
                   >
                     {dimension.score}%
@@ -285,6 +289,35 @@ const RepositoryHealthRadarChart = ({
       </div>
 
       {/* Health Recommendations */}
+      <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+        <h4 className="text-sm sm:text-base font-semibold text-blue-900 mb-2 sm:mb-3 flex items-center gap-2">
+          <Award className="w-4 h-4" />
+          Health Recommendations
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+          {healthData
+            .filter((item) => item.score < 70)
+            .slice(0, 4)
+            .map((item, index) => (
+              <div key={item.dimension} className="text-blue-700">
+                <span className="font-medium">Improve {item.dimension}:</span>
+                <span className="ml-1">
+                  {item.dimension === "Activity" && "Increase commit frequency"}
+                  {item.dimension === "Community" && "Encourage contributions"}
+                  {item.dimension === "Documentation" && "Add README and wiki"}
+                  {item.dimension === "Quality" && "Address open issues"}
+                  {item.dimension === "Security" && "Add license and updates"}
+                  {item.dimension === "Maintenance" && "Regular releases"}
+                </span>
+              </div>
+            ))}
+          {healthData.every((item) => item.score >= 70) && (
+            <div className="text-blue-700 col-span-full text-center">
+              🎉 Excellent repository health! Keep up the great work!
+            </div>
+          )}
+        </div>
+      </div>
     </motion.div>
   );
 };

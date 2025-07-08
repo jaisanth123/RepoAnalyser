@@ -92,15 +92,19 @@ const CommitTimelineChart = ({ commits = [], repository }) => {
       const activity = getActivityLevel(data.commits);
 
       return (
-        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-900">{label}</p>
-          <p className="text-sm text-gray-600">{data.weekday}</p>
+        <div className="bg-white p-3 sm:p-4 rounded-lg shadow-lg border border-gray-200">
+          <p className="font-semibold text-gray-900 text-sm sm:text-base">
+            {label}
+          </p>
+          <p className="text-xs sm:text-sm text-gray-600">{data.weekday}</p>
           <div className="flex items-center gap-2 mt-2">
             <div
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: activity.color }}
             />
-            <span className="text-sm font-medium">{data.commits} commits</span>
+            <span className="text-xs sm:text-sm font-medium">
+              {data.commits} commits
+            </span>
             <span className="text-xs text-gray-500">({activity.level})</span>
           </div>
         </div>
@@ -111,10 +115,10 @@ const CommitTimelineChart = ({ commits = [], repository }) => {
 
   const TrendIcon = () => {
     if (trends.trend === "up")
-      return <TrendingUp className="w-4 h-4 text-green-600" />;
+      return <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />;
     if (trends.trend === "down")
-      return <TrendingDown className="w-4 h-4 text-red-600" />;
-    return <Minus className="w-4 h-4 text-gray-600" />;
+      return <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 text-red-600" />;
+    return <Minus className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />;
   };
 
   const getTrendColor = () => {
@@ -127,16 +131,18 @@ const CommitTimelineChart = ({ commits = [], repository }) => {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg"
+      className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg"
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3">
         <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-blue-600" />
-          <h3 className="text-xl font-bold text-gray-900">Commit Timeline</h3>
+          <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+            Commit Timeline
+          </h3>
         </div>
-        <div className="text-right">
-          <div className="text-sm text-gray-600">Last 30 days</div>
-          <div className="flex items-center gap-1 text-sm font-medium">
+        <div className="text-left sm:text-right">
+          <div className="text-xs sm:text-sm text-gray-600">Last 30 days</div>
+          <div className="flex items-center gap-1 text-xs sm:text-sm font-medium">
             <TrendIcon />
             <span className={getTrendColor()}>
               {trends.change}% vs prev week
@@ -146,27 +152,38 @@ const CommitTimelineChart = ({ commits = [], repository }) => {
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-900">{totalCommits}</div>
-          <div className="text-sm text-blue-700">Total Commits</div>
+      <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="text-center p-2 sm:p-3 bg-blue-50 rounded-lg">
+          <div className="text-lg sm:text-2xl font-bold text-blue-900">
+            {totalCommits}
+          </div>
+          <div className="text-xs sm:text-sm text-blue-700">Total Commits</div>
         </div>
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <div className="text-2xl font-bold text-green-900">{avgDaily}</div>
-          <div className="text-sm text-green-700">Daily Average</div>
+        <div className="text-center p-2 sm:p-3 bg-green-50 rounded-lg">
+          <div className="text-lg sm:text-2xl font-bold text-green-900">
+            {avgDaily}
+          </div>
+          <div className="text-xs sm:text-sm text-green-700">Daily Average</div>
         </div>
-        <div className="text-center p-3 bg-purple-50 rounded-lg">
-          <div className="text-2xl font-bold text-purple-900">{maxCommits}</div>
-          <div className="text-sm text-purple-700">Peak Day</div>
+        <div className="text-center p-2 sm:p-3 bg-purple-50 rounded-lg">
+          <div className="text-lg sm:text-2xl font-bold text-purple-900">
+            {maxCommits}
+          </div>
+          <div className="text-xs sm:text-sm text-purple-700">Peak Day</div>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="h-80">
+      <div className="h-64 sm:h-80 lg:h-96">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={timelineData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            margin={{
+              top: 20,
+              right: 10,
+              left: 10,
+              bottom: 5,
+            }}
           >
             <defs>
               <linearGradient id="commitGradient" x1="0" y1="0" x2="0" y2="1">
@@ -179,13 +196,13 @@ const CommitTimelineChart = ({ commits = [], repository }) => {
               dataKey="date"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 12, fill: "#6b7280" }}
-              interval={2}
+              tick={{ fontSize: 10, fill: "#6b7280" }}
+              interval={window.innerWidth < 640 ? 4 : 2}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 12, fill: "#6b7280" }}
+              tick={{ fontSize: 10, fill: "#6b7280" }}
             />
             <Tooltip content={<CustomTooltip />} />
             <ReferenceLine
@@ -199,17 +216,27 @@ const CommitTimelineChart = ({ commits = [], repository }) => {
               stroke="#3b82f6"
               strokeWidth={2}
               fill="url(#commitGradient)"
-              dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
+              dot={{
+                fill: "#3b82f6",
+                strokeWidth: 2,
+                r: window.innerWidth < 640 ? 2 : 4,
+              }}
+              activeDot={{
+                r: window.innerWidth < 640 ? 4 : 6,
+                stroke: "#3b82f6",
+                strokeWidth: 2,
+              }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
       {/* Activity Pattern Analysis */}
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-        <h4 className="font-semibold text-gray-900 mb-2">Activity Insights</h4>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+      <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+        <h4 className="text-sm sm:text-base font-semibold text-gray-900 mb-2">
+          Activity Insights
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
           <div>
             <span className="text-gray-600">Most active period:</span>
             <span className="ml-2 font-medium text-gray-900">
