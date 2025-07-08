@@ -23,7 +23,7 @@ const Header = () => {
     // { path: "/dashboard", icon: BarChart3, label: "Dashboard" },
     // { path: "/contributors", icon: Users, label: "Contributors" },
     // { path: "/codebase", icon: Code, label: "Codebase" },
-    { path: "/security", icon: Shield, label: "Security" },
+    // { path: "/security", icon: Shield, label: "Security" },
   ];
 
   return (

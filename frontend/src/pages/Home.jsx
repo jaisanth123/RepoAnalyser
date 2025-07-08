@@ -425,7 +425,7 @@ const Home = () => {
                   className="inline-flex items-center gap-2 text-gray-500 underline font-bold hover:text-gray-700 transition-colors"
                 >
                   {/* <User className="w-4 h-4" /> */}
-                  guy
+                  Guy
                 </a>
               </p>
             </motion.div>
