@@ -33,6 +33,7 @@ import {
   BarChart3,
   GitMerge,
   Sparkles,
+  Info,
 } from "lucide-react";
 import {
   format,
@@ -82,141 +83,504 @@ const RepoCard = ({
   );
   const [isLoadingCommits, setIsLoadingCommits] = useState(false);
   const [hasMoreCommits, setHasMoreCommits] = useState(false);
+  const [commitCountMethod, setCommitCountMethod] = useState("provided"); // Track which method was used
+  const [isCommitCountApproximate, setIsCommitCountApproximate] =
+    useState(false);
+  const [commitCountProgress, setCommitCountProgress] = useState("");
+  const [showLoadingCount, setShowLoadingCount] = useState(false); // New state for loading display
 
-  // Fetch actual commit count from GitHub API if not provided
-  useEffect(() => {
-    const fetchActualCommitCount = async () => {
-      // Only fetch if totalCommits not provided and we have exactly 100 commits (likely paginated)
-      if (!totalCommits && commits.length >= 100) {
-        setIsLoadingCommits(true);
+  // Enhanced commit counting with multiple strategies
+  const fetchComprehensiveCommitCount = async (owner, repo) => {
+    const methods = [];
+
+    try {
+      // Method 1: GraphQL API for comprehensive commit count
+      const graphqlCount = await fetchCommitCountGraphQL(owner, repo);
+      if (graphqlCount) {
+        methods.push({
+          method: "graphql",
+          count: graphqlCount,
+          confidence: "high",
+        });
+      }
+    } catch (error) {
+      console.warn("GraphQL method failed:", error);
+    }
+
+    try {
+      // Method 2: All branches comprehensive count
+      const branchCount = await fetchCommitCountAllBranches(owner, repo);
+      if (branchCount) {
+        methods.push({
+          method: "all-branches",
+          count: branchCount,
+          confidence: "high",
+        });
+      }
+    } catch (error) {
+      console.warn("All branches method failed:", error);
+    }
+
+    try {
+      // Method 3: Enhanced stats/contributors with all pages
+      const statsCount = await fetchCommitCountEnhancedStats(owner, repo);
+      if (statsCount) {
+        methods.push({
+          method: "enhanced-stats",
+          count: statsCount,
+          confidence: "medium",
+        });
+      }
+    } catch (error) {
+      console.warn("Enhanced stats method failed:", error);
+    }
+
+    try {
+      // Method 4: Smart pagination with multiple strategies
+      const paginationCount = await fetchCommitCountSmartPagination(
+        owner,
+        repo
+      );
+      if (paginationCount) {
+        methods.push({
+          method: "smart-pagination",
+          count: paginationCount,
+          confidence: "medium",
+        });
+      }
+    } catch (error) {
+      console.warn("Smart pagination method failed:", error);
+    }
+
+    // Return the best result
+    if (methods.length > 0) {
+      // Prefer high-confidence methods, then highest count
+      const highConfidenceMethods = methods.filter(
+        (m) => m.confidence === "high"
+      );
+      const bestMethod =
+        highConfidenceMethods.length > 0
+          ? highConfidenceMethods.reduce((a, b) => (a.count > b.count ? a : b))
+          : methods.reduce((a, b) => (a.count > b.count ? a : b));
+
+      return bestMethod;
+    }
+
+    return null;
+  };
+
+  // Method 1: GraphQL API for comprehensive commit counting
+  const fetchCommitCountGraphQL = async (owner, repo) => {
+    setCommitCountProgress("Trying GraphQL API...");
+
+    const query = `
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          refs(refPrefix: "refs/heads/", first: 100) {
+            nodes {
+              name
+              target {
+                ... on Commit {
+                  history(first: 1) {
+                    totalCount
+                  }
+                }
+              }
+            }
+          }
+          defaultBranchRef {
+            target {
+              ... on Commit {
+                history(first: 1) {
+                  totalCount
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const token = localStorage.getItem("github_token");
+    if (!token) {
+      throw new Error("No GitHub token available for GraphQL");
+    }
+
+    const response = await fetch("https://api.github.com/graphql", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query, variables: { owner, repo } }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`GraphQL query failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.errors) {
+      throw new Error(`GraphQL errors: ${JSON.stringify(data.errors)}`);
+    }
+
+    // Get unique commits across all branches
+    const branches = data.data.repository.refs.nodes;
+    const defaultBranchCount =
+      data.data.repository.defaultBranchRef?.target?.history?.totalCount || 0;
+
+    // Use the highest count from any branch as the baseline
+    let maxCount = defaultBranchCount;
+    for (const branch of branches) {
+      const branchCount = branch.target?.history?.totalCount || 0;
+      if (branchCount > maxCount) {
+        maxCount = branchCount;
+      }
+    }
+
+    return maxCount;
+  };
+
+  // Method 2: Fetch commits from all branches
+  const fetchCommitCountAllBranches = async (owner, repo) => {
+    setCommitCountProgress("Analyzing all branches...");
+
+    // First, get all branches
+    const branchesResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/branches?per_page=100`,
+      {
+        headers: {
+          Accept: "application/vnd.github.v3+json",
+          ...(localStorage.getItem("github_token") && {
+            Authorization: `token ${localStorage.getItem("github_token")}`,
+          }),
+        },
+      }
+    );
+
+    if (!branchesResponse.ok) {
+      throw new Error(`Failed to fetch branches: ${branchesResponse.status}`);
+    }
+
+    const branchesData = await branchesResponse.json();
+    let maxCommitCount = 0;
+    const uniqueCommits = new Set();
+
+    // Process branches in batches to avoid rate limiting
+    const batchSize = 5;
+    for (let i = 0; i < branchesData.length; i += batchSize) {
+      const batch = branchesData.slice(i, i + batchSize);
+
+      const branchPromises = batch.map(async (branch) => {
         try {
-          const [owner, repo] = repository.full_name.split("/");
-          let realTotalCommits = commits.length;
+          setCommitCountProgress(`Analyzing branch: ${branch.name}...`);
 
-          // Method 1: Try stats/contributors endpoint
-          try {
-            const statsResponse = await fetch(
-              `https://api.github.com/repos/${owner}/${repo}/stats/contributors`,
+          // Get commit count for this branch
+          const commitsResponse = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/commits?sha=${branch.commit.sha}&per_page=1`,
+            {
+              headers: {
+                Accept: "application/vnd.github.v3+json",
+                ...(localStorage.getItem("github_token") && {
+                  Authorization: `token ${localStorage.getItem(
+                    "github_token"
+                  )}`,
+                }),
+              },
+            }
+          );
+
+          if (commitsResponse.ok) {
+            const linkHeader = commitsResponse.headers.get("Link");
+            let branchCommitCount = 1;
+
+            if (linkHeader) {
+              const lastPageMatch = linkHeader.match(/page=(\d+)>; rel="last"/);
+              if (lastPageMatch) {
+                branchCommitCount = parseInt(lastPageMatch[1]);
+              }
+            }
+
+            // Also collect unique commit SHAs for deduplication
+            const recentCommitsResponse = await fetch(
+              `https://api.github.com/repos/${owner}/${repo}/commits?sha=${branch.commit.sha}&per_page=100`,
               {
                 headers: {
                   Accept: "application/vnd.github.v3+json",
+                  ...(localStorage.getItem("github_token") && {
+                    Authorization: `token ${localStorage.getItem(
+                      "github_token"
+                    )}`,
+                  }),
                 },
               }
             );
 
-            if (statsResponse.ok) {
-              const contributors = await statsResponse.json();
-              if (contributors && contributors.length > 0) {
-                realTotalCommits = contributors.reduce(
-                  (total, contributor) => total + contributor.total,
-                  0
-                );
-                setActualTotalCommits(realTotalCommits);
-                return; // Success, exit early
-              }
+            if (recentCommitsResponse.ok) {
+              const recentCommits = await recentCommitsResponse.json();
+              recentCommits.forEach((commit) => uniqueCommits.add(commit.sha));
             }
-          } catch (error) {
-            console.warn("Stats/contributors API failed:", error);
-          }
 
-          // Method 2: Try pagination approach with commits endpoint
-          try {
-            const commitsResponse = await fetch(
-              `https://api.github.com/repos/${owner}/${repo}/commits?per_page=1&page=1`,
-              {
-                headers: {
-                  Accept: "application/vnd.github.v3+json",
-                },
-              }
-            );
-
-            if (commitsResponse.ok) {
-              const linkHeader = commitsResponse.headers.get("Link");
-              if (linkHeader) {
-                // Parse the Link header to get the last page number
-                const lastPageMatch = linkHeader.match(
-                  /page=(\d+)>; rel="last"/
-                );
-                if (lastPageMatch) {
-                  const lastPage = parseInt(lastPageMatch[1]);
-
-                  // Get the last page to count remaining commits
-                  const lastPageResponse = await fetch(
-                    `https://api.github.com/repos/${owner}/${repo}/commits?per_page=100&page=${lastPage}`,
-                    {
-                      headers: {
-                        Accept: "application/vnd.github.v3+json",
-                      },
-                    }
-                  );
-
-                  if (lastPageResponse.ok) {
-                    const lastPageCommits = await lastPageResponse.json();
-                    realTotalCommits =
-                      (lastPage - 1) * 100 + lastPageCommits.length;
-                    setActualTotalCommits(realTotalCommits);
-                    return; // Success, exit early
-                  }
-                }
-              }
-            }
-          } catch (error) {
-            console.warn("Pagination method failed:", error);
-          }
-
-          // Method 3: Try to estimate based on repository age and recent activity
-          try {
-            const repoResponse = await fetch(
-              `https://api.github.com/repos/${owner}/${repo}`,
-              {
-                headers: {
-                  Accept: "application/vnd.github.v3+json",
-                },
-              }
-            );
-
-            if (repoResponse.ok) {
-              const repoData = await repoResponse.json();
-              // If repo has been updated recently and we have 100 commits,
-              // it's likely there are more than 100
-              if (repoData.updated_at) {
-                const daysSinceUpdate = differenceInDays(
-                  new Date(),
-                  new Date(repoData.updated_at)
-                );
-
-                // If recently updated and we have exactly 100 commits, estimate more
-                if (daysSinceUpdate < 30 && commits.length === 100) {
-                  // Conservative estimate based on activity
-                  const monthsSinceCreation = differenceInMonths(
-                    new Date(),
-                    new Date(repoData.created_at)
-                  );
-
-                  // Rough estimation: if repo is active and old, likely more commits
-                  if (monthsSinceCreation > 6) {
-                    realTotalCommits = Math.max(150, commits.length * 1.5);
-                    setActualTotalCommits(Math.floor(realTotalCommits));
-                    return;
-                  }
-                }
-              }
-            }
-          } catch (error) {
-            console.warn("Repository estimation failed:", error);
-          }
-
-          // If we still have exactly 100 commits and couldn't get exact count,
-          // indicate there are likely more
-          if (commits.length === 100 && realTotalCommits === 100) {
-            setHasMoreCommits(true);
+            return { branch: branch.name, count: branchCommitCount };
           }
         } catch (error) {
-          console.warn("Failed to fetch actual commit count:", error);
-          // Keep the default value if all methods fail
-        } finally {
-          setIsLoadingCommits(false);
+          console.warn(
+            `Failed to get commits for branch ${branch.name}:`,
+            error
+          );
+          return { branch: branch.name, count: 0 };
         }
+      });
+
+      const batchResults = await Promise.all(branchPromises);
+
+      // Update max count
+      batchResults.forEach((result) => {
+        if (result.count > maxCommitCount) {
+          maxCommitCount = result.count;
+        }
+      });
+
+      // Small delay to avoid rate limiting
+      if (i + batchSize < branchesData.length) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+
+    // Return the higher of: max branch count or unique commits count
+    return Math.max(maxCommitCount, uniqueCommits.size);
+  };
+
+  // Method 3: Enhanced stats/contributors with proper handling
+  const fetchCommitCountEnhancedStats = async (owner, repo) => {
+    setCommitCountProgress("Using enhanced stats API...");
+
+    const statsResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/stats/contributors`,
+      {
+        headers: {
+          Accept: "application/vnd.github.v3+json",
+          ...(localStorage.getItem("github_token") && {
+            Authorization: `token ${localStorage.getItem("github_token")}`,
+          }),
+        },
+      }
+    );
+
+    if (statsResponse.status === 202) {
+      // Stats are being computed, wait and retry
+      setCommitCountProgress("Stats computing, retrying...");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const retryResponse = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/stats/contributors`,
+        {
+          headers: {
+            Accept: "application/vnd.github.v3+json",
+            ...(localStorage.getItem("github_token") && {
+              Authorization: `token ${localStorage.getItem("github_token")}`,
+            }),
+          },
+        }
+      );
+
+      if (retryResponse.ok) {
+        const contributors = await retryResponse.json();
+        if (contributors && contributors.length > 0) {
+          return contributors.reduce(
+            (total, contributor) => total + contributor.total,
+            0
+          );
+        }
+      }
+    } else if (statsResponse.ok) {
+      const contributors = await statsResponse.json();
+      if (contributors && contributors.length > 0) {
+        return contributors.reduce(
+          (total, contributor) => total + contributor.total,
+          0
+        );
+      }
+    }
+
+    throw new Error("Enhanced stats method failed");
+  };
+
+  // Method 4: Smart pagination with multiple strategies
+  const fetchCommitCountSmartPagination = async (owner, repo) => {
+    setCommitCountProgress("Using smart pagination...");
+
+    // Try different approaches to get better pagination info
+    const strategies = [
+      // Strategy 1: Default branch with since parameter for better traversal
+      async () => {
+        const response = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}/commits?per_page=1&page=1`,
+          {
+            headers: {
+              Accept: "application/vnd.github.v3+json",
+              ...(localStorage.getItem("github_token") && {
+                Authorization: `token ${localStorage.getItem("github_token")}`,
+              }),
+            },
+          }
+        );
+
+        if (response.ok) {
+          const linkHeader = response.headers.get("Link");
+          if (linkHeader) {
+            const lastPageMatch = linkHeader.match(/page=(\d+)>; rel="last"/);
+            if (lastPageMatch) {
+              const lastPage = parseInt(lastPageMatch[1]);
+
+              // Get the last page to count remaining commits
+              const lastPageResponse = await fetch(
+                `https://api.github.com/repos/${owner}/${repo}/commits?per_page=100&page=${lastPage}`,
+                {
+                  headers: {
+                    Accept: "application/vnd.github.v3+json",
+                    ...(localStorage.getItem("github_token") && {
+                      Authorization: `token ${localStorage.getItem(
+                        "github_token"
+                      )}`,
+                    }),
+                  },
+                }
+              );
+
+              if (lastPageResponse.ok) {
+                const lastPageCommits = await lastPageResponse.json();
+                return (lastPage - 1) * 100 + lastPageCommits.length;
+              }
+            }
+          }
+        }
+        throw new Error("Strategy 1 failed");
+      },
+
+      // Strategy 2: Use repository creation date for better estimation
+      async () => {
+        const repoResponse = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}`,
+          {
+            headers: {
+              Accept: "application/vnd.github.v3+json",
+              ...(localStorage.getItem("github_token") && {
+                Authorization: `token ${localStorage.getItem("github_token")}`,
+              }),
+            },
+          }
+        );
+
+        if (repoResponse.ok) {
+          const repoData = await repoResponse.json();
+          const createdDate = new Date(repoData.created_at);
+          const monthsOld = differenceInMonths(new Date(), createdDate);
+
+          // Fetch recent commits to estimate velocity
+          const recentResponse = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/commits?per_page=100`,
+            {
+              headers: {
+                Accept: "application/vnd.github.v3+json",
+                ...(localStorage.getItem("github_token") && {
+                  Authorization: `token ${localStorage.getItem(
+                    "github_token"
+                  )}`,
+                }),
+              },
+            }
+          );
+
+          if (recentResponse.ok) {
+            const recentCommits = await recentResponse.json();
+            const recentCommitDates = recentCommits
+              .map((c) => new Date(c.commit.author.date))
+              .filter((date) => !isNaN(date.getTime()));
+
+            if (recentCommitDates.length > 10) {
+              const oldestRecent = Math.min(...recentCommitDates);
+              const newestRecent = Math.max(...recentCommitDates);
+              const daysSpan = Math.max(
+                1,
+                (newestRecent - oldestRecent) / (1000 * 60 * 60 * 24)
+              );
+              const commitsPerDay = recentCommits.length / daysSpan;
+              const totalDays =
+                (Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+
+              return Math.round(commitsPerDay * totalDays * 0.8); // Conservative estimate
+            }
+          }
+        }
+        throw new Error("Strategy 2 failed");
+      },
+    ];
+
+    // Try strategies in order
+    for (const strategy of strategies) {
+      try {
+        const result = await strategy();
+        if (result > 0) {
+          return result;
+        }
+      } catch (error) {
+        console.warn("Strategy failed:", error);
+      }
+    }
+
+    throw new Error("All smart pagination strategies failed");
+  };
+
+  // Main commit count fetching logic
+  useEffect(() => {
+    const fetchActualCommitCount = async () => {
+      if (totalCommits) {
+        setCommitCountMethod("provided");
+        return;
+      }
+
+      if (commits.length < 100) {
+        setCommitCountMethod("sampled");
+        setIsCommitCountApproximate(false);
+        return;
+      }
+
+      // Start loading state - hide the default 100 count
+      setIsLoadingCommits(true);
+      setShowLoadingCount(true);
+      setCommitCountProgress("Starting comprehensive analysis...");
+
+      // Set a placeholder while loading
+      setActualTotalCommits(null);
+
+      try {
+        const [owner, repo] = repository.full_name.split("/");
+
+        const result = await fetchComprehensiveCommitCount(owner, repo);
+
+        if (result) {
+          setActualTotalCommits(result.count);
+          setCommitCountMethod(result.method);
+          setIsCommitCountApproximate(result.confidence !== "high");
+          setCommitCountProgress("Analysis complete!");
+        } else {
+          // Fallback to original logic
+          setActualTotalCommits(commits.length);
+          setHasMoreCommits(true);
+          setIsCommitCountApproximate(true);
+          setCommitCountMethod("fallback");
+        }
+      } catch (error) {
+        console.warn("Comprehensive commit count failed:", error);
+        setActualTotalCommits(commits.length);
+        setCommitCountMethod("error");
+        setIsCommitCountApproximate(true);
+      } finally {
+        setIsLoadingCommits(false);
+        setShowLoadingCount(false);
+        setCommitCountProgress("");
       }
     };
 
@@ -496,15 +860,21 @@ const RepoCard = ({
       ),
     ];
 
+    // Show loading state or actual data
+    const displayTotal = showLoadingCount
+      ? null
+      : actualTotalCommits || commits.length;
+    const isLoading = showLoadingCount || isLoadingCommits;
+
     return {
-      total: actualTotalCommits,
+      total: displayTotal,
       recent7Days: last7Days.length,
       recent30Days: last30Days.length,
       weeklyFrequency: Math.round(last30Days.length / 4.3),
       uniqueAuthors: commitAuthors.length,
-      avgCommitsPerAuthor: Math.round(
-        actualTotalCommits / commitAuthors.length
-      ),
+      avgCommitsPerAuthor: displayTotal
+        ? Math.round(displayTotal / commitAuthors.length)
+        : 0,
       mostRecentCommit: commits[0],
       commitVelocity:
         last7Days.length > 0
@@ -512,6 +882,9 @@ const RepoCard = ({
           : last30Days.length > 5
           ? "Medium"
           : "Low",
+      method: commitCountMethod,
+      isApproximate: isCommitCountApproximate,
+      isLoading: isLoading,
     };
   };
 
@@ -576,6 +949,7 @@ const RepoCard = ({
         commitPatterns={commitPatterns}
         isLoadingCommits={isLoadingCommits}
         hasMoreCommits={hasMoreCommits}
+        commitCountProgress={commitCountProgress}
       />
 
       <div className="p-6">
