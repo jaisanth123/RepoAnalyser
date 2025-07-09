@@ -64,8 +64,8 @@ const DevelopmentWorkflowCard = ({
                 <span className="text-orange-600 animate-pulse">Analyzing...</span>
               ) : (
                 <>
-                  {commitPatterns?.total?.toLocaleString() || 0}
-                  {hasMoreCommits && <span className="text-orange-600">+</span>}
+              {commitPatterns?.total?.toLocaleString() || 0}
+              {hasMoreCommits && <span className="text-orange-600">+</span>}
                   {commitPatterns?.isApproximate && (
                     <span className="text-orange-600 ml-1">≈</span>
                   )}
@@ -127,7 +127,7 @@ const DevelopmentWorkflowCard = ({
               <span className="text-orange-600">Weekly frequency</span>
               <span className="text-orange-800 font-medium">
                 {commitPatterns?.weeklyFrequency || 0}
-              </span>
+            </span>
             </div>
           </div>
         </div>
