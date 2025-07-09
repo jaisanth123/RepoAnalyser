@@ -89,6 +89,21 @@ const RepoCard = ({
   const [commitCountProgress, setCommitCountProgress] = useState("");
   const [showLoadingCount, setShowLoadingCount] = useState(false); // New state for loading display
 
+  // New state for comprehensive contributor counting
+  const [actualTotalContributors, setActualTotalContributors] = useState(
+    contributors.length
+  );
+  const [isLoadingContributors, setIsLoadingContributors] = useState(false);
+  const [contributorCountMethod, setContributorCountMethod] =
+    useState("provided");
+  const [isContributorCountApproximate, setIsContributorCountApproximate] =
+    useState(false);
+  const [contributorCountProgress, setContributorCountProgress] = useState("");
+  const [showLoadingContributorCount, setShowLoadingContributorCount] =
+    useState(false);
+  const [enhancedContributors, setEnhancedContributors] =
+    useState(contributors);
+
   // Enhanced commit counting with multiple strategies
   const fetchComprehensiveCommitCount = async (owner, repo) => {
     const methods = [];
@@ -533,6 +548,178 @@ const RepoCard = ({
     throw new Error("All smart pagination strategies failed");
   };
 
+  const fetchContributorCountGraphQL = async (owner, repo) => {
+    setContributorCountProgress("Fetching total contributors...");
+
+    const query = `
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          mentionableUsers {
+            totalCount
+          }
+          defaultBranchRef {
+            target {
+              ... on Commit {
+                history(first: 1) {
+                  totalCount
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const token = localStorage.getItem("github_token");
+    if (!token) {
+      throw new Error("No GitHub token available for GraphQL");
+    }
+
+    // First try GraphQL API for total count
+    const graphqlResponse = await fetch("https://api.github.com/graphql", {
+      method: "POST",
+      headers: {
+        Authorization: `bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query, variables: { owner, repo } }),
+    });
+
+    if (graphqlResponse.ok) {
+      const graphqlData = await graphqlResponse.json();
+      const totalCount =
+        graphqlData.data?.repository?.mentionableUsers?.totalCount || 0;
+
+      // Now get the contributor details using REST API
+      const detailResponse = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/contributors?per_page=100`,
+        {
+          headers: {
+            Accept: "application/vnd.github.v3+json",
+            Authorization: `token ${token}`,
+          },
+        }
+      );
+
+      let contributors = [];
+      if (detailResponse.ok) {
+        contributors = await detailResponse.json();
+        contributors = contributors.map((c) => ({
+          login: c.login || "anonymous",
+          avatar_url:
+            c.avatar_url || "https://github.com/identicons/default.png",
+          html_url: c.html_url || "#",
+          contributions: c.contributions || 0,
+        }));
+      }
+
+      // If GraphQL gives us a count, use it, otherwise fall back to REST API pagination
+      if (totalCount > 0) {
+        return {
+          count: totalCount,
+          contributors: contributors,
+          confidence: "high",
+        };
+      }
+    }
+
+    // Fallback to REST API pagination if GraphQL fails
+    const restResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contributors?per_page=1&anon=1`,
+      {
+        headers: {
+          Accept: "application/vnd.github.v3+json",
+          Authorization: `token ${token}`,
+        },
+      }
+    );
+
+    let totalCount = 0;
+    if (restResponse.ok) {
+      const linkHeader = restResponse.headers.get("Link");
+      if (linkHeader) {
+        const matches = linkHeader.match(/page=(\d+)>; rel="last"/);
+        if (matches) {
+          totalCount = parseInt(matches[1]);
+        }
+      }
+    }
+
+    return {
+      count: totalCount || contributors.length,
+      contributors: contributors,
+      confidence: "high",
+    };
+  };
+
+  // Remove other contributor counting methods that were causing overcounting
+  const fetchComprehensiveContributorCount = async (owner, repo) => {
+    try {
+      const result = await fetchContributorCountGraphQL(owner, repo);
+      return {
+        count: result.count,
+        contributors: result.contributors,
+        method: "graphql",
+        confidence: "high",
+      };
+    } catch (error) {
+      console.warn("Contributor count failed:", error);
+      return null;
+    }
+  };
+
+  // Main contributor count fetching logic
+  useEffect(() => {
+    const fetchActualContributorCount = async () => {
+      if (contributors.length < 100) {
+        setContributorCountMethod("sampled");
+        setIsContributorCountApproximate(false);
+        return;
+      }
+
+      // Start loading state
+      setIsLoadingContributors(true);
+      setShowLoadingContributorCount(true);
+      setContributorCountProgress("Fetching contributors...");
+
+      // Set a placeholder while loading
+      setActualTotalContributors(null);
+
+      try {
+        const [owner, repo] = repository.full_name.split("/");
+        const result = await fetchComprehensiveContributorCount(owner, repo);
+
+        if (result) {
+          setActualTotalContributors(result.count);
+          setContributorCountMethod(result.method);
+          setIsContributorCountApproximate(false);
+          setContributorCountProgress("Complete!");
+
+          // Update contributors list if we got better data
+          if (result.contributors && result.contributors.length > 0) {
+            setEnhancedContributors(result.contributors);
+          }
+        } else {
+          // Fallback to original count
+          setActualTotalContributors(contributors.length);
+          setContributorCountMethod("fallback");
+          setIsContributorCountApproximate(true);
+        }
+      } catch (error) {
+        console.warn("Contributor count failed:", error);
+        setActualTotalContributors(contributors.length);
+        setContributorCountMethod("error");
+        setIsContributorCountApproximate(true);
+      } finally {
+        setIsLoadingContributors(false);
+        setShowLoadingContributorCount(false);
+        setContributorCountProgress("");
+      }
+    };
+
+    fetchActualContributorCount();
+  }, [repository.full_name, contributors.length]);
+
   // Main commit count fetching logic
   useEffect(() => {
     const fetchActualCommitCount = async () => {
@@ -734,46 +921,64 @@ const RepoCard = ({
   };
 
   const getDetailedContributorInsights = () => {
-    if (!contributors.length) return null;
+    // Use enhanced contributors if available, otherwise fall back to original
+    const contributorsToUse =
+      enhancedContributors.length > 0 ? enhancedContributors : contributors;
 
-    const totalContributions = contributors.reduce(
+    // Show loading state or actual data
+    const displayTotal = showLoadingContributorCount
+      ? null
+      : actualTotalContributors || contributorsToUse.length;
+    const isLoading = showLoadingContributorCount || isLoadingContributors;
+
+    if (!contributorsToUse.length && !isLoading) return null;
+
+    const totalContributions = contributorsToUse.reduce(
       (sum, c) => sum + (c.contributions || 0),
       0
     );
-    const avgContributions = totalContributions / contributors.length;
-    const topContributors = contributors.slice(0, 5);
-    const coreContributors = contributors.filter(
+    const avgContributions = totalContributions / contributorsToUse.length;
+    const topContributors = contributorsToUse.slice(0, 5);
+    const coreContributors = contributorsToUse.filter(
       (c) => c.contributions > avgContributions
     );
 
     // Calculate contribution distribution
-    const contributionDistribution = contributors.map((c) => ({
+    const contributionDistribution = contributorsToUse.map((c) => ({
       ...c,
       percentage: Math.round((c.contributions / totalContributions) * 100),
     }));
 
     return {
-      total: contributors.length,
+      total: displayTotal,
       totalContributions,
       avgContributions: Math.round(avgContributions),
       topContributors,
       coreContributors: coreContributors.length,
       contributionDistribution,
-      diversityScore: calculateDiversityScore(contributors),
+      diversityScore: calculateDiversityScore(contributorsToUse),
       collaborationScore: calculateCollaborationScore(
-        contributors,
+        contributorsToUse,
         totalContributions
       ),
+      // Add loading and method information
+      isLoading: isLoading,
+      method: contributorCountMethod,
+      isApproximate: isContributorCountApproximate,
+      progress: contributorCountProgress,
     };
   };
 
   const calculateDiversityScore = (contributors) => {
-    if (contributors.length <= 1) return 15;
+    if (!contributors || contributors.length <= 1) return 15;
 
     const totalContributions = contributors.reduce(
       (sum, c) => sum + (c.contributions || 0),
       0
     );
+
+    if (totalContributions === 0) return 15;
+
     const topContributorShare =
       (contributors[0]?.contributions || 0) / totalContributions;
 
@@ -785,7 +990,8 @@ const RepoCard = ({
   };
 
   const calculateCollaborationScore = (contributors, totalContributions) => {
-    if (contributors.length <= 1) return 20;
+    if (!contributors || contributors.length <= 1) return 20;
+    if (totalContributions === 0) return 20;
 
     const avgContributions = totalContributions / contributors.length;
     const activeContributors = contributors.filter(
@@ -947,6 +1153,7 @@ const RepoCard = ({
         health={health}
         activity={activity}
         commitPatterns={commitPatterns}
+        contributorInsights={contributorInsights}
         isLoadingCommits={isLoadingCommits}
         hasMoreCommits={hasMoreCommits}
         commitCountProgress={commitCountProgress}
@@ -1039,7 +1246,11 @@ const RepoCard = ({
           <div className="grid grid-cols-1 gap-6 mb-6">
             {/* Contributor Distribution */}
             <ContributorDistributionChart
-              contributors={contributors}
+              contributors={
+                enhancedContributors.length > 0
+                  ? enhancedContributors
+                  : contributors
+              }
               repository={repository}
             />
 
