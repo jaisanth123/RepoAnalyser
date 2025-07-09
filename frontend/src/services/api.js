@@ -73,16 +73,36 @@ export const GitHubAPI = {
     }
   },
 
-  // Get repository contributors
-  async getContributors(owner, repo, page = 1) {
+  // Get repository contributors (fetches ALL contributors with pagination)
+  async getContributors(owner, repo) {
     try {
-      const response = await githubApi.get(
-        `/repos/${owner}/${repo}/contributors`,
-        {
-          params: { page, per_page: 100 },
+      let allContributors = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await githubApi.get(
+          `/repos/${owner}/${repo}/contributors`,
+          {
+            params: { page, per_page: 100 },
+          }
+        );
+
+        const contributors = response.data;
+
+        if (contributors && contributors.length > 0) {
+          allContributors = allContributors.concat(contributors);
+
+          // Check if there are more pages
+          // If we got less than 100 results, we've reached the end
+          hasMore = contributors.length === 100;
+          page++;
+        } else {
+          hasMore = false;
         }
-      );
-      return response.data;
+      }
+
+      return allContributors;
     } catch (error) {
       console.error("Error fetching contributors:", error);
       throw error;
@@ -107,19 +127,38 @@ export const GitHubAPI = {
     }
   },
 
-  // Get repository issues (excludes pull requests)
+  // Get repository issues (excludes pull requests, fetches ALL issues with pagination)
   async getIssues(owner, repo, state = "all") {
     try {
-      const response = await githubApi.get(`/repos/${owner}/${repo}/issues`, {
-        params: {
-          state,
-          per_page: 100,
-          // GitHub API includes PRs in issues by default, but we filter them out in the component
-          // Adding this comment for clarity about the expected behavior
-        },
-      });
+      let allIssues = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await githubApi.get(`/repos/${owner}/${repo}/issues`, {
+          params: {
+            state,
+            page,
+            per_page: 100,
+            // GitHub API includes PRs in issues by default, but we filter them out below
+          },
+        });
+
+        const issues = response.data;
+
+        if (issues && issues.length > 0) {
+          allIssues = allIssues.concat(issues);
+
+          // Check if there are more pages
+          hasMore = issues.length === 100;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+
       // Filter out pull requests from issues (GitHub API includes PRs in issues endpoint)
-      const actualIssues = response.data.filter((issue) => !issue.pull_request);
+      const actualIssues = allIssues.filter((issue) => !issue.pull_request);
       return actualIssues;
     } catch (error) {
       console.error("Error fetching issues:", error);
@@ -127,13 +166,32 @@ export const GitHubAPI = {
     }
   },
 
-  // Get repository pull requests
+  // Get repository pull requests (fetches ALL pull requests with pagination)
   async getPullRequests(owner, repo, state = "all") {
     try {
-      const response = await githubApi.get(`/repos/${owner}/${repo}/pulls`, {
-        params: { state, per_page: 100 },
-      });
-      return response.data;
+      let allPullRequests = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await githubApi.get(`/repos/${owner}/${repo}/pulls`, {
+          params: { state, page, per_page: 100 },
+        });
+
+        const pullRequests = response.data;
+
+        if (pullRequests && pullRequests.length > 0) {
+          allPullRequests = allPullRequests.concat(pullRequests);
+
+          // Check if there are more pages
+          hasMore = pullRequests.length === 100;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      return allPullRequests;
     } catch (error) {
       console.error("Error fetching pull requests:", error);
       throw error;
@@ -151,13 +209,35 @@ export const GitHubAPI = {
     }
   },
 
-  // Get repository branches
+  // Get repository branches (fetches ALL branches with pagination)
   async getBranches(owner, repo) {
     try {
-      const response = await githubApi.get(`/repos/${owner}/${repo}/branches`, {
-        params: { per_page: 100 },
-      });
-      return response.data;
+      let allBranches = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await githubApi.get(
+          `/repos/${owner}/${repo}/branches`,
+          {
+            params: { page, per_page: 100 },
+          }
+        );
+
+        const branches = response.data;
+
+        if (branches && branches.length > 0) {
+          allBranches = allBranches.concat(branches);
+
+          // Check if there are more pages
+          hasMore = branches.length === 100;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      return allBranches;
     } catch (error) {
       console.error("Error fetching branches:", error);
       throw error;
