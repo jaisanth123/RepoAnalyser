@@ -289,7 +289,7 @@ const RepositoryHealthRadarChart = ({
       </div>
 
       {/* Health Recommendations */}
-      <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+      {/* <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
         <h4 className="text-sm sm:text-base font-semibold text-blue-900 mb-2 sm:mb-3 flex items-center gap-2">
           <Award className="w-4 h-4" />
           Health Recommendations
@@ -317,7 +317,7 @@ const RepositoryHealthRadarChart = ({
             </div>
           )}
         </div>
-      </div>
+      </div> */}
     </motion.div>
   );
 };
